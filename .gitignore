@@ -1,0 +1,15 @@
+bin/
+obj/
+artifacts/
+.vs/
+*.user
+*.suo
+startup.log
+*.log
+publish/
+models/
+models-dev/
+程序/
+发布/
+KuangYiData/
+*.zip
