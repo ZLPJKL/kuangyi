@@ -4,11 +4,6 @@ Windows 10/11 桌面框选翻译工具。按 `F2` 框选屏幕任意区域，本
 
 版本 **1.0.1** · 更新记录见 [CHANGELOG.md](CHANGELOG.md) · 许可证 [MIT](LICENSE)。
 
-> 源码仓库不包含 `models/` 和发布包。
-> 发布版分为「程序本体」和「离线语言包」两个 ZIP：
-> 程序本体内含启动器 `框译.exe` 和 `bin\`，语言包提供 `bin\models\`；
-> 两者解压到同一目录即可运行。
-
 技术栈：.NET 10 + WPF + Windows.Media.Ocr + ONNX Runtime + SQLite。
 
 ## 当前已实现
@@ -187,23 +182,8 @@ tools/KuangYi.Probe/     OCR / 捕获 / 在线翻译探针
 scripts/publish.ps1      发布（含模型复制）
 scripts/download-models.ps1  单独下载模型
 docs/离线模型.md          模型来源、许可证、质量说明
-docs/发布指南.md          GitHub 发布与发给朋友的完整步骤
 THIRD-PARTY-NOTICES.md   第三方组件与模型许可
 ```
-
-## 发布
-
-源码仓库不包含 `models/` 和 `程序/`。GitHub 发布、Release 打包、
-发给朋友的步骤见 [docs/发布指南.md](docs/发布指南.md) 和
-[docs/GitHub新手上传教程.md](docs/GitHub新手上传教程.md)。
-
-发布包分为两个：
-
-- `框译-v1.0.1-程序本体-win-x64.zip`：自包含运行时、启动器和界面，不含模型；
-- `框译-v1.0.1-离线语言包.zip`：只有 `bin\models\` 和模型许可说明。
-
-两者解压到同一目录，保证 `bin\KuangYi.exe` 和 `bin\models\` 同级；
-根目录的 `框译.exe` 是启动器。
 
 ## 后续优先级
 

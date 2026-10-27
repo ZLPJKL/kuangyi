@@ -43,14 +43,13 @@
    如果系统限制用户目录写入，会自动改写到 程序\KuangYiData。
 
 5. 目录说明
-   程序\        自包含完整版（含 .NET 运行时、models、说明文档）
-   源码\        源码仓库（KuangYi.sln、README.md、构建/发布脚本）
-   产品大纲.md  产品设计大纲
+   框译.exe     启动器
+   bin\         程序、DLL、models 和运行库
+   源码\        源码工程
    免责声明.txt  免费、无广告、本地运行与责任说明
    DeepL注册及使用教程.txt  DeepL API 免费 Key 的注册与填写方法
    LibreTranslate自建教程.txt  自己部署免费翻译服务的方法
    离线模型说明.md  模型来源、许可证与质量说明
-   GitHub新手上传教程.md  从零上传源码和发布包的步骤
 
 6. 重新构建
    需要 .NET 10 SDK，在 源码\ 下执行：
