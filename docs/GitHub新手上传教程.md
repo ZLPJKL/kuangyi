@@ -37,8 +37,8 @@ git --version
 本教程使用这两个文件（已经生成在 `框译\发布\`）：
 
 ```text
-框译-v1.0-程序本体-win-x64.zip
-框译-v1.0-离线语言包.zip
+框译-v1.0.1-程序本体-win-x64.zip
+框译-v1.0.1-离线语言包.zip
 ```
 
 - 程序本体：约 100–200 MB，自包含 .NET 运行时，不含模型；
@@ -163,22 +163,22 @@ branch 'main' set up to track 'origin/main'.
 3. **Choose a tag** 输入：
 
 ```text
-v1.0.0
+v1.0.1
 ```
 
-4. 点 **Create new tag: v1.0.0 on publish**。
+4. 点 **Create new tag: v1.0.1 on publish**。
 
 ### 2. 填写标题和说明
 
-- **Release title**：`框译 v1.0.0`
+- **Release title**：`框译 v1.0.1`
 - **Describe this release**：把 `CHANGELOG.md` 的内容复制进去即可。
 
 ### 3. 上传两个 ZIP
 
 在 **Attach binaries by dropping them here or selecting them** 区域：
 
-1. 选择 `框译-v1.0-程序本体-win-x64.zip`；
-2. 再选择 `框译-v1.0-离线语言包.zip`；
+1. 选择 `框译-v1.0.1-程序本体-win-x64.zip`；
+2. 再选择 `框译-v1.0.1-离线语言包.zip`；
 3. 等待上传完成（模型包约 1.1 GB，可能需要几分钟）；
 4. 点 **Publish release**。
 
@@ -292,7 +292,7 @@ Windows 自带解压对 UTF-8 中文名支持不一致。建议用 7-Zip 解压�
 1. 创建空仓库
 2. 本地 git init / add / commit
 3. push 源码
-4. 网页创建 Release v1.0.0
+4. 网页创建 Release v1.0.1
 5. 上传 程序本体.zip
 6. 上传 离线语言包.zip
 7. Publish release
