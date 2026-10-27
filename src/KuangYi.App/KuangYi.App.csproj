@@ -1,46 +1,58 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
+    <AssemblyName>KuangYi</AssemblyName>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
-    <SupportedOSPlatformVersion>10.0.17763.0</SupportedOSPlatformVersion>
+    <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <LangVersion>latest</LangVersion>
-    <AssemblyName>KuangYi</AssemblyName>
-    <RootNamespace>KuangYi.App</RootNamespace>
+    <LangVersion>14.0</LangVersion>
+    <PlatformTarget>x64</PlatformTarget>
+    <ApplicationIcon>app.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <ApplicationIcon>Assets\app.ico</ApplicationIcon>
-    <Version>1.0.0</Version>
-    <AssemblyVersion>1.0.0.0</AssemblyVersion>
-    <FileVersion>1.0.0.0</FileVersion>
-    <Authors>KuangYi</Authors>
-    <Product>框译</Product>
-    <AssemblyTitle>框译 · 屏幕框选翻译</AssemblyTitle>
-    <SatelliteResourceLanguages>zh-Hans;en</SatelliteResourceLanguages>
-    <InvariantGlobalization>false</InvariantGlobalization>
-    <!-- The manifest intentionally declares PerMonitorV2 for a WPF app; the WinForms analyzer
-         suggests the WinForms property, which would not apply here. -->
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <NoWarn>$(NoWarn);WFAC010;WFO0003</NoWarn>
   </PropertyGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\KuangYi.Core\KuangYi.Core.csproj" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Resource Include="Assets\app.ico" />
-    <Content Include="免责声明.txt" CopyToOutputDirectory="PreserveNewest" />
-    <Content Include="DeepL注册及使用教程.txt" CopyToOutputDirectory="PreserveNewest" />
-  </ItemGroup>
-
   <ItemGroup>
     <Using Include="System.IO" />
     <Using Include="System.Net.Http" />
     <Using Remove="System.Drawing" />
     <Using Remove="System.Windows.Forms" />
   </ItemGroup>
-
+  <ItemGroup>
+    <ApplicationDefinition Remove="KuangYi\App\App.xaml" />
+    <ApplicationDefinition Include="KuangYi\App\App.xaml" Generator="MSBuild:Compile" SubType="Designer" LogicalName="app.xaml" />
+    <Page Remove="KuangYi\App\Windows\CaptureOverlayWindow.xaml" />
+    <Page Remove="KuangYi\App\Windows\DisclaimerWindow.xaml" />
+    <Page Remove="KuangYi\App\Windows\HistoryWindow.xaml" />
+    <Page Remove="KuangYi\App\Windows\MainWindow.xaml" />
+    <Page Remove="KuangYi\App\Windows\ResultWindow.xaml" />
+    <Page Remove="KuangYi\App\Windows\SettingsWindow.xaml" />
+    <Page Remove="KuangYi\App\Windows\StartupNoticeWindow.xaml" />
+    <Page Remove="themes\black.xaml" />
+    <Page Remove="themes\shared.xaml" />
+    <Page Remove="themes\white.xaml" />
+    <Page Include="KuangYi\App\Windows\CaptureOverlayWindow.xaml" Generator="MSBuild:Compile" SubType="Designer" LogicalName="windows/captureoverlaywindow.xaml" />
+    <Page Include="KuangYi\App\Windows\DisclaimerWindow.xaml" Generator="MSBuild:Compile" SubType="Designer" LogicalName="windows/disclaimerwindow.xaml" />
+    <Page Include="KuangYi\App\Windows\HistoryWindow.xaml" Generator="MSBuild:Compile" SubType="Designer" LogicalName="windows/historywindow.xaml" />
+    <Page Include="KuangYi\App\Windows\MainWindow.xaml" Generator="MSBuild:Compile" SubType="Designer" LogicalName="windows/mainwindow.xaml" />
+    <Page Include="KuangYi\App\Windows\ResultWindow.xaml" Generator="MSBuild:Compile" SubType="Designer" LogicalName="windows/resultwindow.xaml" />
+    <Page Include="KuangYi\App\Windows\SettingsWindow.xaml" Generator="MSBuild:Compile" SubType="Designer" LogicalName="windows/settingswindow.xaml" />
+    <Page Include="KuangYi\App\Windows\StartupNoticeWindow.xaml" Generator="MSBuild:Compile" SubType="Designer" LogicalName="windows/startupnoticewindow.xaml" />
+    <Page Include="themes\black.xaml" Generator="MSBuild:Compile" SubType="Designer" LogicalName="themes/black.xaml" />
+    <Page Include="themes\shared.xaml" Generator="MSBuild:Compile" SubType="Designer" LogicalName="themes/shared.xaml" />
+    <Page Include="themes\white.xaml" Generator="MSBuild:Compile" SubType="Designer" LogicalName="themes/white.xaml" />
+    <Resource Remove="assets\app.ico" />
+    <Resource Include="assets\app.ico" LogicalName="assets/app.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="免责声明.txt" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="DeepL注册及使用教程.txt" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="LibreTranslate自建教程.txt" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>

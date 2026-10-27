@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Window x:Class="KuangYi.App.Windows.CaptureOverlayWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:windows="clr-namespace:KuangYi.App.Windows;assembly=KuangYi" Title="框译 · 框选" WindowStyle="None" ResizeMode="NoResize" ShowInTaskbar="False" WindowStartupLocation="Manual" Topmost="True" Background="#FF000000" Cursor="Cross" UseLayoutRounding="True" SnapsToDevicePixels="True">
+  <Grid Name="RootGrid" ClipToBounds="True">
+    <Image Name="ScreenImage" Stretch="Fill" />
+    <Canvas Name="Layer" IsHitTestVisible="False">
+      <Rectangle Name="DimTop" Fill="#A6000000" />
+      <Rectangle Name="DimBottom" Fill="#A6000000" />
+      <Rectangle Name="DimLeft" Fill="#A6000000" />
+      <Rectangle Name="DimRight" Fill="#A6000000" />
+      <Rectangle Name="SelectionBorder" Stroke="{DynamicResource Accent}" StrokeThickness="1.5" Visibility="Collapsed" />
+      <Border Name="SizeBadge" Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource Border}" BorderThickness="1" CornerRadius="6" Padding="8,3" Visibility="Collapsed">
+        <TextBlock Name="SizeText" FontSize="11" />
+      </Border>
+    </Canvas>
+    <Border Name="HintBadge" Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource Border}" BorderThickness="1" CornerRadius="18" Padding="16,8" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,48" Opacity="0.94">
+      <TextBlock Text="拖动选择区域，松开开始识别 · Esc 取消" Foreground="{DynamicResource TextSecondary}" FontSize="12" />
+    </Border>
+  </Grid>
+</Window>

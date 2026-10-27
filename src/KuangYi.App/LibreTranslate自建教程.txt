@@ -1,0 +1,109 @@
+LibreTranslate 自建教程（Windows）
+====================================
+
+LibreTranslate 是开源翻译服务，可以部署在自己电脑上：
+- 免费、无在线额度；
+- 文字不出本机（只在本机 127.0.0.1 之间传输）；
+- 质量一般不如 DeepL，但胜在免费、可控、可离线局域网使用。
+
+一、方式一：Docker（推荐）
+--------------------------
+1. 安装 Docker Desktop for Windows：
+   https://www.docker.com/products/docker-desktop/
+   安装时启用 WSL2；装完重启电脑，打开 Docker Desktop 等它启动完成。
+
+2. 打开 PowerShell，先拉取镜像：
+   docker pull libretranslate/libretranslate
+
+3. 启动（只监听本机，端口 5000）：
+   docker run -d --name libretranslate --restart unless-stopped -p 127.0.0.1:5000:5000 -v libretranslate-models:/home/libretranslate/.local/share/argos-translate libretranslate/libretranslate --load-only en,zh,ru,ja,ko
+
+   说明：
+   - 整条命令是一行，PowerShell 里直接粘贴执行即可；
+   - --load-only 只加载英/中/俄/日/韩，避免下载全部语言模型；
+   - 第一次启动会下载模型，可能需要几分钟；
+   - 模型保存在 Docker 卷 libretranslate-models 中，重启不丢；
+   - 本机使用只绑定 127.0.0.1，局域网其他设备访问不到。
+
+4. 查看日志：
+   docker logs -f libretranslate
+   看到服务启动完成后，打开浏览器访问 http://127.0.0.1:5000 应能看到页面。
+
+5. 停止/启动：
+   docker stop libretranslate
+   docker start libretranslate
+
+如果要让局域网其它设备使用，把 -p 127.0.0.1:5000:5000 改成 -p 5000:5000，
+并在 Windows 防火墙放行 5000 端口；同时建议加 API Key（见第四节）。
+
+二、方式二：Python 直接运行（不装 Docker）
+------------------------------------------
+1. 安装 Python 3.11（不要用太新的 3.14，依赖可能没轮子）：
+   https://www.python.org/downloads/windows/
+2. 打开 PowerShell：
+   py -3.11 -m venv C:\libretranslate-venv
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+   C:\libretranslate-venv\Scripts\Activate.ps1
+   python -m pip install --upgrade pip
+   pip install libretranslate
+
+3. 启动：
+   libretranslate --load-only en,zh,ru,ja,ko --host 127.0.0.1 --port 5000
+
+4. 浏览器打开 http://127.0.0.1:5000 检查。
+   如果安装依赖报错，优先改用 Docker 方式。
+
+三、在框译里填写
+----------------
+1. 框译 → 设置 → 勾选“启用在线翻译”；
+2. 服务选择“LibreTranslate（自建或私有实例）”；
+3. 地址填：
+   http://127.0.0.1:5000
+   ⚠ 只填到端口，不要填 /translate；框译会自动加 /translate。
+4. 如果没有启用 API Key，密钥留空；
+5. 取消勾选“仅本地模式”（否则框译禁止一切网络请求，包括本机 5000 端口）；
+6. 保存，然后框选翻译。
+
+四、可选：给 LibreTranslate 加 API Key
+--------------------------------------
+本机使用可以不加 Key。若开放到局域网/公网，建议启用 API Key：
+
+docker run ... libretranslate/libretranslate --load-only en,zh,ru,ja,ko --api-keys
+
+启用后需要在容器里创建 Key，再把 Key 填到框译的“接口密钥”。
+具体创建命令随 LibreTranslate 版本变化，请以官方文档为准：
+https://docs.libretranslate.com/
+
+五、测试服务是否正常
+--------------------
+PowerShell 执行：
+
+$body = @{ q = "Hello"; source = "en"; target = "zh"; format = "text" } | ConvertTo-Json
+Invoke-RestMethod -Uri http://127.0.0.1:5000/translate `
+  -Method Post -ContentType "application/json" -Body $body
+
+能返回 translatedText 就说明服务正常。
+如果报错，先看 docker logs libretranslate。
+
+六、常见问题
+------------
+1. 首次翻译很慢
+   第一次要下载/加载语言模型，之后会快一些。
+
+2. 中文/日文/韩文质量一般
+   LibreTranslate 使用 Argos 开源模型，质量不如 DeepL；
+   可以改用 DeepL 免费 Key，或继续用框译离线模型。
+
+3. 框译提示连接失败
+   - 确认 Docker 容器在运行：docker ps
+   - 确认地址是 http://127.0.0.1:5000（不要带 /translate）
+   - 确认框译没有勾选“仅本地模式”
+   - 确认 Windows 防火墙没有拦截
+
+4. 想省内存
+   --load-only 只保留常用语言；Docker 容器限制内存可用
+   --memory 2g 等参数，但模型太小会加载失败。
+
+5. 想完全离线
+   第一次下载模型后，LibreTranslate 可断网运行；
+   框译这边仍然需要取消“仅本地模式”才能访问本机 5000 端口。

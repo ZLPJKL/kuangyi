@@ -1,0 +1,122 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Window x:Class="KuangYi.App.Windows.SettingsWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:windows="clr-namespace:KuangYi.App.Windows;assembly=KuangYi" Title="框译 · 设置" Icon="/Assets/app.ico" Width="560" SizeToContent="Height" MaxHeight="780" WindowStyle="None" ResizeMode="NoResize" ShowInTaskbar="False" WindowStartupLocation="CenterScreen" AllowsTransparency="True" Background="#00FFFFFF" UseLayoutRounding="True">
+  <Border Margin="14" Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource Border}" BorderThickness="1" CornerRadius="12">
+    <UIElement.Effect>
+      <DropShadowEffect BlurRadius="20" ShadowDepth="2" Opacity="0.25" Color="Black" />
+    </UIElement.Effect>
+    <Grid>
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+      </Grid.RowDefinitions>
+      <Grid Row="0" Margin="20,14,10,4" MouseLeftButtonDown="Header_MouseLeftButtonDown">
+        <TextBlock Text="设置" Style="{StaticResource SectionTitle}" VerticalAlignment="Center" />
+        <Button Content="✕" Style="{StaticResource GhostButton}" HorizontalAlignment="Right" Click="Cancel_Click" />
+      </Grid>
+      <ScrollViewer Grid.Row="1" MaxHeight="600" Margin="20,4,14,0" Padding="0,0,6,0" VerticalScrollBarVisibility="Auto">
+        <StackPanel>
+          <TextBlock Text="全局热键" Style="{StaticResource CaptionText}" />
+          <Grid Margin="0,6,0,0">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBox Name="HotkeyBox" IsReadOnly="True" Margin="0,0,8,0" PreviewKeyDown="HotkeyBox_PreviewKeyDown" />
+            <Button Grid.Column="1" Content="恢复默认" Style="{StaticResource GhostButton}" Click="ResetHotkey_Click" />
+          </Grid>
+          <TextBlock Text="点击输入框后按下新组合键。字母或数字热键必须带修饰键；F2 为默认值。" Style="{StaticResource CaptionText}" Margin="0,4,0,0" TextWrapping="Wrap" />
+          <Border Height="1" Background="{DynamicResource Border}" Margin="0,14" />
+          <TextBlock Text="外观" Style="{StaticResource CaptionText}" />
+          <ComboBox Name="ThemeCombo" Width="180" HorizontalAlignment="Left" Margin="0,6,0,0" />
+          <Border Height="1" Background="{DynamicResource Border}" Margin="0,14" />
+          <TextBlock Text="语言" Style="{StaticResource CaptionText}" />
+          <Grid Margin="0,6,0,0">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <StackPanel Margin="0,0,8,0">
+              <TextBlock Text="源语言策略" Style="{StaticResource CaptionText}" Margin="0,0,0,4" />
+              <ComboBox Name="SourceLangCombo" DisplayMemberPath="NameZh" />
+            </StackPanel>
+            <StackPanel Grid.Column="1">
+              <TextBlock Text="默认目标语言" Style="{StaticResource CaptionText}" Margin="0,0,0,4" />
+              <ComboBox Name="TargetLangCombo" DisplayMemberPath="NameZh" />
+            </StackPanel>
+          </Grid>
+          <Border Height="1" Background="{DynamicResource Border}" Margin="0,14" />
+          <TextBlock Text="翻译" Style="{StaticResource CaptionText}" />
+          <CheckBox Name="OnlineCheck" Content="启用在线翻译（会发送识别出的文字）" Margin="0,8,0,0" Checked="OnlineCheck_Changed" Unchecked="OnlineCheck_Changed" />
+          <Grid Margin="0,8,0,0">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="Auto" />
+              <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="服务" VerticalAlignment="Center" Margin="0,0,10,0" />
+            <ComboBox Name="ProviderCombo" Grid.Column="1" SelectedValuePath="Tag" SelectionChanged="ProviderCombo_SelectionChanged">
+              <ComboBoxItem Content="MyMemory（免密钥，有额度）" Tag="mymemory" />
+              <ComboBoxItem Content="DeepL（免费版，需要 API Key）" Tag="deepl" />
+              <ComboBoxItem Content="LibreTranslate（自建或私有实例）" Tag="libretranslate" />
+            </ComboBox>
+          </Grid>
+          <TextBlock Name="EndpointLabel" Text="LibreTranslate 地址" Style="{StaticResource CaptionText}" Margin="0,8,0,4" />
+          <TextBox Name="EndpointBox" />
+          <TextBlock Name="ApiKeyLabel" Text="接口密钥（可选）" Style="{StaticResource CaptionText}" Margin="0,8,0,4" />
+          <TextBox Name="ApiKeyBox" />
+          <TextBlock Name="ProviderHintText" Style="{StaticResource CaptionText}" TextWrapping="Wrap" Visibility="Collapsed" Margin="0,4,0,0" Text="DeepL 免费版每月约 50 万字符，需到 deepl.com 注册 API Key；密钥通常以 :fx 结尾。DeepL 不可达时会自动回退本地模型。" />
+          <Button Name="DeepLTutorialButton" Content="查看 DeepL 注册及使用教程" Style="{StaticResource GhostButton}" HorizontalAlignment="Left" Margin="0,6,0,0" Visibility="Collapsed" Click="OpenDeepLTutorial_Click" />
+          <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+            <Button Name="TestOnlineButton" Content="测试连接" Style="{StaticResource GhostButton}" Click="TestOnline_Click" />
+            <TextBlock Name="TestOnlineText" Style="{StaticResource CaptionText}" VerticalAlignment="Center" Margin="8,0,0,0" TextTrimming="CharacterEllipsis" MaxWidth="360" />
+          </StackPanel>
+          <CheckBox Name="LocalOnlyCheck" Content="仅本地模式（禁止一切网络请求）" Margin="0,10,0,0" Checked="LocalOnlyCheck_Changed" Unchecked="LocalOnlyCheck_Changed" />
+          <TextBlock Text="在线关闭时，翻译会依次尝试内置词典与本地模型；两者都不可用时会明确提示。" Style="{StaticResource CaptionText}" TextWrapping="Wrap" Margin="0,4,0,0" />
+          <Border Height="1" Background="{DynamicResource Border}" Margin="0,14" />
+          <TextBlock Text="历史记录" Style="{StaticResource CaptionText}" />
+          <CheckBox Name="HistoryCheck" Content="记录每次成功翻译（仅存本机）" Margin="0,8,0,0" />
+          <Grid Margin="0,8,0,0">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <StackPanel Margin="0,0,8,0">
+              <TextBlock Text="最近记录上限（10-500 条）" Style="{StaticResource CaptionText}" Margin="0,0,0,4" />
+              <TextBox Name="HistoryLimitBox" />
+            </StackPanel>
+            <StackPanel Grid.Column="1">
+              <TextBlock Text="保留天数（1-3650 天）" Style="{StaticResource CaptionText}" Margin="0,0,0,4" />
+              <TextBox Name="HistoryDaysBox" />
+            </StackPanel>
+          </Grid>
+          <TextBlock Name="HistoryStatsText" Style="{StaticResource CaptionText}" Margin="0,6,0,0" />
+          <CheckBox Name="ThumbnailCheck" Content="保存缩略图（原图默认不落盘）" Margin="0,8,0,0" />
+          <CheckBox Name="OriginalCheck" Content="同时保存原图（占用更多磁盘）" Margin="0,8,0,0" />
+          <Border Height="1" Background="{DynamicResource Border}" Margin="0,14" />
+          <TextBlock Text="识别与数据" Style="{StaticResource CaptionText}" />
+          <TextBlock Name="OcrStatusText" Style="{StaticResource CaptionText}" TextWrapping="Wrap" Margin="0,6,0,0" />
+          <TextBlock Name="DictionaryStatusText" Style="{StaticResource CaptionText}" TextWrapping="Wrap" Margin="0,4,0,0" />
+          <TextBlock Name="ModelStatusText" Style="{StaticResource CaptionText}" TextWrapping="Wrap" Margin="0,4,0,0" />
+          <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+            <Button Content="打开数据目录" Style="{StaticResource GhostButton}" Click="OpenDataFolder_Click" />
+            <Button Content="安装识别语言包" Style="{StaticResource GhostButton}" Click="InstallOcrPack_Click" />
+            <Button Content="打开语言设置" Style="{StaticResource GhostButton}" Click="OpenLanguageSettings_Click" />
+          </StackPanel>
+          <Border Height="1" Background="{DynamicResource Border}" Margin="0,14" />
+          <CheckBox Name="StartupCheck" Content="开机自动启动（当前用户）" Margin="0,0,0,8" />
+          <Border Height="1" Background="{DynamicResource Border}" Margin="0,6,0,14" />
+          <TextBlock Text="免责声明" Style="{StaticResource CaptionText}" />
+          <TextBlock Name="DisclaimerText" Style="{StaticResource CaptionText}" Foreground="{DynamicResource TextPrimary}" TextWrapping="Wrap" LineHeight="19" Margin="0,6,0,0" Text="框译是免费软件，无广告、无内购。默认本地运行：OCR 和离线翻译都在本机完成；在线翻译默认关闭，关闭时软件不会主动联网。机器翻译可能存在错误，请自行判断，不要用于医疗、法律、金融等高风险决策。用户使用本软件翻译、复制、发布内容等行为及其后果由用户自行承担，软件及开发者不承担任何责任。" />
+          <Button Content="查看完整免责声明" Style="{StaticResource GhostButton}" Margin="0,8,0,0" Click="OpenDisclaimer_Click" />
+        </StackPanel>
+      </ScrollViewer>
+      <Grid Row="2" Margin="20,12,14,14">
+        <TextBlock Name="ErrorText" Foreground="{DynamicResource Danger}" Style="{StaticResource CaptionText}" VerticalAlignment="Center" TextWrapping="Wrap" MaxWidth="330" HorizontalAlignment="Left" />
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+          <Button Content="取消" Style="{StaticResource GhostButton}" Margin="0,0,8,0" Click="Cancel_Click" />
+          <Button Content="保存" Style="{StaticResource PrimaryButton}" Padding="18,6" Click="Save_Click" />
+        </StackPanel>
+      </Grid>
+    </Grid>
+  </Border>
+</Window>
