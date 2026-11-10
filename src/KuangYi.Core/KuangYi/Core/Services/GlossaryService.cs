@@ -76,10 +76,7 @@ public sealed class GlossaryService
         foreach (var entry in entries)
         {
             var placeholder = $"[[G{replacements.Count + 1}]]";
-            var replaced = prepared.Replace(
-                entry.Source,
-                placeholder,
-                StringComparison.OrdinalIgnoreCase);
+            var replaced = ReplaceTerm(prepared, entry.Source, placeholder);
             if (string.Equals(replaced, prepared, StringComparison.Ordinal))
             {
                 continue;
@@ -90,6 +87,41 @@ public sealed class GlossaryService
         }
 
         return new GlossaryApplication(prepared, replacements);
+    }
+
+    private static string ReplaceTerm(string text, string term, string replacement)
+    {
+        if (!NeedsWordBoundary(term))
+        {
+            return text.Replace(term, replacement, StringComparison.OrdinalIgnoreCase);
+        }
+
+        var pattern = $@"(?<![\p{{L}}\p{{N}}_]){Regex.Escape(term)}(?![\p{{L}}\p{{N}}_])";
+        return Regex.Replace(text, pattern, replacement, RegexOptions.IgnoreCase);
+    }
+
+    private static bool NeedsWordBoundary(string term)
+    {
+        foreach (var c in term)
+        {
+            // CJK terms are commonly written without spaces; direct replacement is
+            // the useful behavior there. Latin/Cyrillic words need boundaries so
+            // that "API" does not match inside "CAPITAL".
+            var code = (int)c;
+            if ((code >= 0x3040 && code <= 0x30FF)
+                || (code >= 0x3400 && code <= 0x9FFF)
+                || (code >= 0xAC00 && code <= 0xD7AF))
+            {
+                return false;
+            }
+
+            if (char.IsLetterOrDigit(c))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public string Restore(string translated, IReadOnlyDictionary<int, string> replacements)

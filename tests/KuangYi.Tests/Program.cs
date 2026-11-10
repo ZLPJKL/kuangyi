@@ -172,6 +172,42 @@ Check("长文本分块", chunks.Count > 1);
 Check("每块不超过 450 字节", chunks.All(c => Encoding.UTF8.GetByteCount(c) <= 450));
 Check("分块后内容无损", string.Concat(chunks) == longText);
 
+Section("Glossary");
+var glossaryPath = Path.Combine(root, "glossary.txt");
+File.WriteAllText(glossaryPath, """
+    # test glossary
+    en>zh Account=账户
+    en>zh API=接口
+    ja>zh 読書=阅读
+    zh>en 账户=Account
+    malformed line
+    """, new UTF8Encoding(false));
+var glossary = new GlossaryService(glossaryPath);
+Check("术语表加载条数", glossary.Count == 4);
+
+var glossaryApp = glossary.Prepare("CAPITAL account API", "en", "zh");
+Check("英文单词边界不误替换 CAPITAL", glossaryApp.Text.Contains("CAPITAL"));
+Check("英文术语匹配 account", glossaryApp.Text.Contains("[[G1]]"));
+Check("英文术语匹配 API", glossaryApp.Text.Contains("[[G2]]"));
+Check("术语表方向过滤", !glossary.Prepare("読書", "en", "zh").Text.Contains("[[G"));
+Check("CJK 术语直接匹配", glossary.Prepare("账户余额", "zh", "en").Text.Contains("[[G1]]"));
+Check("术语占位符还原", glossary.Restore("[[G1]] [[G2]]", glossaryApp.Replacements) == "账户 接口");
+
+Section("TranslationCache");
+var cachePath = Path.Combine(root, "translation-cache.db");
+var cache = new TranslationCache(cachePath);
+var cacheKey = TranslationCache.CreateKey("Account", "en", "zh", "offline", "v1");
+var miss = await cache.TryGetAsync(cacheKey, CancellationToken.None);
+Check("缓存初始未命中", miss == null);
+await cache.StoreAsync(cacheKey, "Account", new TranslationResult("账户", "offline", "离线模型", true), CancellationToken.None);
+var hit = await cache.TryGetAsync(cacheKey, CancellationToken.None);
+Check("缓存命中并返回译文", hit?.Text == "账户" && hit.IsOffline);
+Check("缓存计数", await cache.CountAsync() == 1);
+Check("缓存键随服务模式变化", TranslationCache.CreateKey("Account", "en", "zh", "deepl", "v1") != cacheKey);
+Check("缓存键随术语表版本变化", TranslationCache.CreateKey("Account", "en", "zh", "offline", "v2") != cacheKey);
+Check("清空缓存", await cache.ClearAsync() == 1);
+Check("清空后未命中", await cache.TryGetAsync(cacheKey, CancellationToken.None) == null);
+
 Console.WriteLine();
 Console.WriteLine($"passed={passed} failed={failures.Count}");
 if (failures.Count > 0)
