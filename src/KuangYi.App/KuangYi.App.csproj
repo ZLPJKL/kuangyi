@@ -30,6 +30,7 @@
     <Page Remove="KuangYi\App\Windows\CaptureOverlayWindow.xaml" />
     <Page Remove="KuangYi\App\Windows\DisclaimerWindow.xaml" />
     <Page Remove="KuangYi\App\Windows\HistoryWindow.xaml" />
+    <Page Remove="KuangYi\App\Windows\GlossaryWindow.xaml" />
     <Page Remove="KuangYi\App\Windows\MainWindow.xaml" />
     <Page Remove="KuangYi\App\Windows\ResultWindow.xaml" />
     <Page Remove="KuangYi\App\Windows\SettingsWindow.xaml" />
@@ -40,6 +41,7 @@
     <Page Include="KuangYi\App\Windows\CaptureOverlayWindow.xaml" Generator="MSBuild:Compile" SubType="Designer" LogicalName="windows/captureoverlaywindow.xaml" />
     <Page Include="KuangYi\App\Windows\DisclaimerWindow.xaml" Generator="MSBuild:Compile" SubType="Designer" LogicalName="windows/disclaimerwindow.xaml" />
     <Page Include="KuangYi\App\Windows\HistoryWindow.xaml" Generator="MSBuild:Compile" SubType="Designer" LogicalName="windows/historywindow.xaml" />
+    <Page Include="KuangYi\App\Windows\GlossaryWindow.xaml" Generator="MSBuild:Compile" SubType="Designer" LogicalName="windows/glossarywindow.xaml" />
     <Page Include="KuangYi\App\Windows\MainWindow.xaml" Generator="MSBuild:Compile" SubType="Designer" LogicalName="windows/mainwindow.xaml" />
     <Page Include="KuangYi\App\Windows\ResultWindow.xaml" Generator="MSBuild:Compile" SubType="Designer" LogicalName="windows/resultwindow.xaml" />
     <Page Include="KuangYi\App\Windows\SettingsWindow.xaml" Generator="MSBuild:Compile" SubType="Designer" LogicalName="windows/settingswindow.xaml" />

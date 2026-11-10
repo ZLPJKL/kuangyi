@@ -208,6 +208,30 @@ Check("缓存键随术语表版本变化", TranslationCache.CreateKey("Account",
 Check("清空缓存", await cache.ClearAsync() == 1);
 Check("清空后未命中", await cache.TryGetAsync(cacheKey, CancellationToken.None) == null);
 
+var maxCache = new TranslationCache(Path.Combine(root, "translation-cache-max.db"))
+{
+    MaxEntries = 2
+};
+for (var i = 0; i < 3; i++)
+{
+    var key = TranslationCache.CreateKey($"max-{i}", "en", "zh", "offline", "v1");
+    await maxCache.StoreAsync(key, $"max-{i}", new TranslationResult($"译文{i}", "offline", "离线模型", true), CancellationToken.None);
+}
+Check("缓存按上限淘汰", await maxCache.CountAsync() == 2);
+
+var csvPath = Path.Combine(root, "glossary-export.csv");
+glossary.ExportCsv(csvPath);
+var importedGlossaryPath = Path.Combine(root, "glossary-imported.txt");
+var importedGlossary = new GlossaryService(importedGlossaryPath);
+importedGlossary.ImportCsv(csvPath);
+Check("术语表 CSV 导入导出", importedGlossary.Count == 4);
+Check("CSV 导入后仍可按方向匹配", importedGlossary.Prepare("This API works", "en", "zh").Text.Contains("[[G"));
+
+Check("缓存指纹稳定", TranslationCache.ComputeFingerprint("1.0.3", Path.Combine(root, "no-models"))
+    == TranslationCache.ComputeFingerprint("1.0.3", Path.Combine(root, "no-models")));
+Check("缓存指纹随应用版本变化", TranslationCache.ComputeFingerprint("1.0.3", Path.Combine(root, "no-models"))
+    != TranslationCache.ComputeFingerprint("1.0.4", Path.Combine(root, "no-models")));
+
 Console.WriteLine();
 Console.WriteLine($"passed={passed} failed={failures.Count}");
 if (failures.Count > 0)

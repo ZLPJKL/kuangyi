@@ -194,6 +194,7 @@ public partial class App : System.Windows.Application
 		}
 		HistoryStore = new HistoryService(AppPaths.HistoryDb, AppPaths.ThumbnailDir);
 		Translations = new TranslationService(AppPaths.DictionaryDb);
+		Translations.ConfigureCache(Settings.CacheMaxEntries);
 		AppLog.Info("offline models: " + (Translations.OfflineAvailable ? string.Join(",", Translations.OfflineDirections) : "none"));
 		ThemeService.Apply(Settings.Theme);
 		_themeTimer = new DispatcherTimer
@@ -363,6 +364,7 @@ public partial class App : System.Windows.Application
 	{
 		updated = SettingsService.Normalize(updated);
 		Settings = updated;
+		Translations.ConfigureCache(Settings.CacheMaxEntries);
 		SettingsStore.Save(Settings);
 		ThemeService.Apply(Settings.Theme);
 		bool flag = Hotkey.Register(Settings.Hotkey);

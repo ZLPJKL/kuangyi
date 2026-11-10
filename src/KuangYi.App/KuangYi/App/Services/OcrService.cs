@@ -87,13 +87,22 @@ public sealed class OcrService
 
 	public async Task<OcrOutput> RecognizeAsync(BitmapSource image, string? preferredLanguageCode, CancellationToken ct)
 	{
+		return await RecognizeAsync(image, preferredLanguageCode, "Balanced", ct);
+	}
+
+	public async Task<OcrOutput> RecognizeAsync(BitmapSource image, string? preferredLanguageCode, string? quality, CancellationToken ct)
+	{
 		ct.ThrowIfCancellationRequested();
 		string preferred = (string.IsNullOrWhiteSpace(preferredLanguageCode) ? null : preferredLanguageCode);
 		if (preferred != null && !IsLanguageInstalled(preferred))
 		{
 			throw new OcrLanguageUnavailableException(preferred);
 		}
-		BitmapSource bitmapSource = Prepare(image);
+
+		string mode = (quality ?? "Balanced").Trim().ToLowerInvariant();
+		bool fast = mode == "fast";
+		bool high = mode == "high";
+		BitmapSource bitmapSource = Prepare(image, high);
 		List<BitmapSource> list = new List<BitmapSource> { bitmapSource };
 		BitmapSource? inverted = null;
 		if (NeedsInvertedCopy(bitmapSource))
@@ -101,12 +110,21 @@ public sealed class OcrService
 			inverted = Invert(bitmapSource);
 			list.Add(inverted);
 		}
-		if (NeedsContrastVariant(bitmapSource))
+		if (!fast && NeedsContrastVariant(bitmapSource))
 		{
 			BitmapSource enhanced = EnhanceContrast(inverted ?? bitmapSource);
 			if (!ReferenceEquals(enhanced, bitmapSource))
 			{
 				list.Add(enhanced);
+			}
+			if (high && inverted != null)
+			{
+				BitmapSource enhancedNormal = EnhanceContrast(bitmapSource);
+				if (!ReferenceEquals(enhancedNormal, bitmapSource)
+					&& !ReferenceEquals(enhancedNormal, enhanced))
+				{
+					list.Add(enhancedNormal);
+				}
 			}
 		}
 		List<(OcrEngine Engine, string Tag)> engines = CreateEngines(preferred);
@@ -610,7 +628,7 @@ public sealed class OcrService
 		return "en";
 	}
 
-	private static BitmapSource Prepare(BitmapSource image)
+	private static BitmapSource Prepare(BitmapSource image, bool highQuality)
 	{
 		uint maxImageDimension = OcrEngine.MaxImageDimension;
 		double num = 1.0;
@@ -623,6 +641,10 @@ public sealed class OcrService
 			num = 1.6;
 		}
 		else if (image.PixelWidth < 1200)
+		{
+			num = 1.25;
+		}
+		if (highQuality && num < 1.25)
 		{
 			num = 1.25;
 		}

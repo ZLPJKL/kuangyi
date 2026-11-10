@@ -98,7 +98,11 @@ public partial class ResultWindow : Window, IComponentConnector
 		try
 		{
 			string configured = App.Current.Settings.SourceLanguage;
-			OcrOutput ocrOutput = await App.Current.Ocr.RecognizeAsync(crop, string.Equals(configured, "auto", StringComparison.OrdinalIgnoreCase) ? null : configured, cts.Token);
+			OcrOutput ocrOutput = await App.Current.Ocr.RecognizeAsync(
+				crop,
+				string.Equals(configured, "auto", StringComparison.OrdinalIgnoreCase) ? null : configured,
+				App.Current.Settings.OcrQuality,
+				cts.Token);
 			if (version == _translateVersion)
 			{
 				if (string.IsNullOrWhiteSpace(ocrOutput.Text))
@@ -219,8 +223,14 @@ public partial class ResultWindow : Window, IComponentConnector
 			GlossaryApplication prepared = glossary.Prepare(text, source, target);
 			AppSettings settings = App.Current.Settings;
 			string mode = settings.LocalOnly ? "offline" : (settings.OnlineEnabled ? settings.OnlineProvider : "offline");
-			string cacheKey = TranslationCache.CreateKey(text, source, target, mode, glossary.Version);
-			if (!string.Equals(source, target, StringComparison.OrdinalIgnoreCase))
+			string cacheKey = TranslationCache.CreateKey(
+				text,
+				source,
+				target,
+				mode,
+				glossary.Version,
+				App.Current.Translations.CacheFingerprint);
+			if (settings.CacheEnabled && !string.Equals(source, target, StringComparison.OrdinalIgnoreCase))
 			{
 				TranslationResult? cached = await App.Current.Translations.Cache.TryGetAsync(cacheKey, ct);
 				if (cached != null)
@@ -259,7 +269,8 @@ public partial class ResultWindow : Window, IComponentConnector
 					EnableOnlineButton.Visibility = Visibility.Collapsed;
 					string value = BuildOnlineFailureNote(translationOutcome);
 					SetStatus(string.Equals(source, target, StringComparison.OrdinalIgnoreCase) ? "源语言与目标语言相同" : $"完成 · {watch.ElapsedMilliseconds} ms{value}");
-					if (!string.Equals(source, target, StringComparison.OrdinalIgnoreCase)
+					if (settings.CacheEnabled
+						&& !string.Equals(source, target, StringComparison.OrdinalIgnoreCase)
 						&& (string.Equals(mode, "offline", StringComparison.OrdinalIgnoreCase) || !restored.IsOffline))
 					{
 						await App.Current.Translations.Cache.StoreAsync(cacheKey, text, restored, ct);
@@ -606,7 +617,7 @@ public partial class ResultWindow : Window, IComponentConnector
 		SetStatus("正在重新识别…");
 		try
 		{
-			OcrOutput ocrOutput = await App.Current.Ocr.RecognizeAsync(_crop, preferredLanguage, ct);
+			OcrOutput ocrOutput = await App.Current.Ocr.RecognizeAsync(_crop, preferredLanguage, App.Current.Settings.OcrQuality, ct);
 			if (version == _translateVersion)
 			{
 				if (string.IsNullOrWhiteSpace(ocrOutput.Text))

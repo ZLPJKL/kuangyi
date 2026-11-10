@@ -9,6 +9,8 @@ namespace KuangYi.Core.Services;
 
 public sealed record GlossaryApplication(string Text, IReadOnlyDictionary<int, string> Replacements);
 
+public sealed record GlossaryEntry(string? SourceLanguage, string? TargetLanguage, string Source, string Target);
+
 /// <summary>
 /// Simple user-editable glossary. Format:
 ///   en>zh Account=账户
@@ -54,6 +56,88 @@ public sealed class GlossaryService
     }
 
     public int Count => LoadEntries().Count;
+
+    public IReadOnlyList<GlossaryEntry> Entries => LoadEntries()
+        .Select(entry => new GlossaryEntry(
+            entry.Direction is null ? null : entry.Direction.Split('>')[0],
+            entry.Direction is null ? null : entry.Direction.Split('>')[1],
+            entry.Source,
+            entry.Target))
+        .ToList();
+
+    public string ReadRaw()
+    {
+        EnsureDefaultFile();
+        try
+        {
+            return File.ReadAllText(_path, Encoding.UTF8);
+        }
+        catch
+        {
+            return string.Empty;
+        }
+    }
+
+    public void WriteRaw(string text)
+    {
+        Directory.CreateDirectory(Path.GetDirectoryName(_path)!);
+        File.WriteAllText(_path, text ?? string.Empty, new UTF8Encoding(false));
+    }
+
+    public void ImportCsv(string csvPath)
+    {
+        var lines = File.ReadAllLines(csvPath, Encoding.UTF8);
+        var output = new List<string>
+        {
+            "# 从 CSV 导入",
+            "# 每行：源语言>目标语言 原文=译文",
+        };
+
+        foreach (var raw in lines)
+        {
+            var fields = ParseCsvLine(raw);
+            if (fields.Count < 4)
+            {
+                continue;
+            }
+
+            if (string.Equals(fields[0].Trim(), "source_lang", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            var sourceLanguage = fields[0].Trim();
+            var targetLanguage = fields[1].Trim();
+            var source = fields[2].Trim();
+            var target = fields[3].Trim();
+            if (source.Length == 0 || target.Length == 0)
+            {
+                continue;
+            }
+
+            var direction = sourceLanguage.Length > 0 && targetLanguage.Length > 0
+                ? $"{sourceLanguage}>{targetLanguage} "
+                : string.Empty;
+            output.Add($"{direction}{source}={target}");
+        }
+
+        WriteRaw(string.Join(Environment.NewLine, output));
+    }
+
+    public void ExportCsv(string csvPath)
+    {
+        var builder = new StringBuilder();
+        builder.AppendLine("source_lang,target_lang,source,target");
+        foreach (var entry in Entries)
+        {
+            builder.Append(Csv(entry.SourceLanguage ?? string.Empty)).Append(',')
+                .Append(Csv(entry.TargetLanguage ?? string.Empty)).Append(',')
+                .Append(Csv(entry.Source)).Append(',')
+                .Append(Csv(entry.Target)).AppendLine();
+        }
+
+        File.WriteAllText(csvPath, builder.ToString(), new UTF8Encoding(false));
+    }
 
     public GlossaryApplication Prepare(string text, string sourceCode, string targetCode)
     {
@@ -252,6 +336,44 @@ public sealed class GlossaryService
         catch
         {
         }
+    }
+
+    private static string Csv(string value)
+        => "\"" + value.Replace("\"", "\"\"") + "\"";
+
+    private static List<string> ParseCsvLine(string line)
+    {
+        var fields = new List<string>();
+        var current = new StringBuilder();
+        var quoted = false;
+        for (var i = 0; i < line.Length; i++)
+        {
+            var c = line[i];
+            if (c == '"')
+            {
+                if (quoted && i + 1 < line.Length && line[i + 1] == '"')
+                {
+                    current.Append('"');
+                    i++;
+                }
+                else
+                {
+                    quoted = !quoted;
+                }
+            }
+            else if (c == ',' && !quoted)
+            {
+                fields.Add(current.ToString());
+                current.Clear();
+            }
+            else
+            {
+                current.Append(c);
+            }
+        }
+
+        fields.Add(current.ToString());
+        return fields;
     }
 
     private sealed record Entry(string? Direction, string Source, string Target)

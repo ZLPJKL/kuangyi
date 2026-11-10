@@ -58,7 +58,11 @@ public partial class SettingsWindow : Window, IComponentConnector
 		ThumbnailCheck.IsChecked = settings.ThumbnailsEnabled;
 		OriginalCheck.IsChecked = settings.KeepOriginalImage;
 		StartupCheck.IsChecked = settings.StartWithWindows;
+		CacheEnabledCheck.IsChecked = settings.CacheEnabled;
+		SelectCacheLimit(settings.CacheMaxEntries);
+		SelectOcrQuality(settings.OcrQuality);
 		ErrorText.Text = string.Empty;
+		DataStatusText.Text = string.Empty;
 		TestOnlineText.Text = string.Empty;
 		GlossaryStatusText.Text = $"已加载 {App.Current.Translations.Glossary.Count} 条术语";
 		UpdateOnlineState();
@@ -105,11 +109,42 @@ public partial class SettingsWindow : Window, IComponentConnector
 		{
 			HistoryStats historyStats = await App.Current.HistoryStore.GetStatsAsync();
 			HistoryStatsText.Text = $"当前：最近 {historyStats.RecentCount} 条 · 收藏 {historyStats.FavoriteCount} 条（收藏独立计数，上限 50 条）";
+			int cacheCount = await App.Current.Translations.Cache.CountAsync();
+			CacheStatusText.Text = $"当前缓存：{cacheCount} 条 / 上限 {App.Current.Settings.CacheMaxEntries} 条";
 		}
 		catch (Exception ex)
 		{
-			AppLog.Warn("history stats failed: " + ex.Message);
+			AppLog.Warn("stats failed: " + ex.Message);
 		}
+	}
+
+	private void SelectCacheLimit(int value)
+	{
+		foreach (var item in CacheLimitCombo.Items)
+		{
+			if (item is ComboBoxItem { Tag: string tag }
+				&& int.TryParse(tag, out var candidate)
+				&& candidate == value)
+			{
+				CacheLimitCombo.SelectedItem = item;
+				return;
+			}
+		}
+		CacheLimitCombo.SelectedIndex = 2;
+	}
+
+	private void SelectOcrQuality(string value)
+	{
+		foreach (var item in OcrQualityCombo.Items)
+		{
+			if (item is ComboBoxItem { Tag: string tag }
+				&& string.Equals(tag, value, StringComparison.OrdinalIgnoreCase))
+			{
+				OcrQualityCombo.SelectedItem = item;
+				return;
+			}
+		}
+		OcrQualityCombo.SelectedIndex = 1;
 	}
 
 	private void UpdateOnlineState()
@@ -246,6 +281,11 @@ public partial class SettingsWindow : Window, IComponentConnector
 		appSettings.ThumbnailsEnabled = ThumbnailCheck.IsChecked == true;
 		appSettings.KeepOriginalImage = OriginalCheck.IsChecked == true;
 		appSettings.StartWithWindows = StartupCheck.IsChecked == true;
+		appSettings.CacheEnabled = CacheEnabledCheck.IsChecked == true;
+		appSettings.CacheMaxEntries = int.TryParse((CacheLimitCombo.SelectedItem as ComboBoxItem)?.Tag as string, out var cacheLimit)
+			? cacheLimit
+			: 1000;
+		appSettings.OcrQuality = (OcrQualityCombo.SelectedItem as ComboBoxItem)?.Tag as string ?? "Balanced";
 		App.Current.ApplySettings(appSettings);
 		StartupService.SetEnabled(appSettings.StartWithWindows);
 		if (!App.Current.Hotkey.IsRegistered)
@@ -288,13 +328,26 @@ public partial class SettingsWindow : Window, IComponentConnector
 	private void ShowError(string message)
 	{
 		ErrorText.Text = message;
+		DataStatusText.Text = string.Empty;
+	}
+
+	private void ShowStatus(string message)
+	{
+		ErrorText.Text = string.Empty;
+		DataStatusText.Text = message;
 	}
 
 	private void OpenGlossary_Click(object sender, RoutedEventArgs e)
 	{
 		try
 		{
-			App.Current.Translations.Glossary.OpenInEditor();
+			var window = new GlossaryWindow
+			{
+				Owner = this
+			};
+			window.ShowDialog();
+			GlossaryStatusText.Text = $"已加载 {App.Current.Translations.Glossary.Count} 条术语";
+			ShowStatus("术语表已更新。");
 		}
 		catch (Exception ex)
 		{
@@ -307,7 +360,8 @@ public partial class SettingsWindow : Window, IComponentConnector
 		try
 		{
 			int count = await App.Current.Translations.Cache.ClearAsync();
-			ShowError($"已清除 {count} 条翻译缓存。");
+			ShowStatus($"已清除 {count} 条翻译缓存。");
+			await RefreshStatsAsync();
 		}
 		catch (Exception ex)
 		{

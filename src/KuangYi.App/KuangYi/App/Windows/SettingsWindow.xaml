@@ -77,6 +77,24 @@
             <Button Content="打开术语表" Style="{StaticResource GhostButton}" Click="OpenGlossary_Click" />
             <TextBlock Name="GlossaryStatusText" Style="{StaticResource CaptionText}" VerticalAlignment="Center" Margin="8,0,0,0" />
           </StackPanel>
+          <Border Height="1" Background="{DynamicResource Border}" Margin="0,14" />
+          <TextBlock Text="翻译缓存" Style="{StaticResource CaptionText}" />
+          <CheckBox Name="CacheEnabledCheck" Content="启用翻译缓存（相同内容直接复用译文）" Margin="0,8,0,0" />
+          <Grid Margin="0,8,0,0">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="Auto" />
+              <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="最大缓存条数" Style="{StaticResource CaptionText}" VerticalAlignment="Center" Margin="0,0,10,0" />
+            <ComboBox Name="CacheLimitCombo" Grid.Column="1" Width="160" HorizontalAlignment="Left">
+              <ComboBoxItem Content="200" Tag="200" />
+              <ComboBoxItem Content="500" Tag="500" />
+              <ComboBoxItem Content="1000" Tag="1000" />
+              <ComboBoxItem Content="2000" Tag="2000" />
+            </ComboBox>
+          </Grid>
+          <TextBlock Name="CacheStatusText" Style="{StaticResource CaptionText}" Margin="0,4,0,0" />
+          <TextBlock Name="DataStatusText" Style="{StaticResource CaptionText}" Foreground="{DynamicResource Accent}" TextWrapping="Wrap" Margin="0,4,0,0" />
           <CheckBox Name="LocalOnlyCheck" Content="仅本地模式（禁止一切网络请求）" Margin="0,10,0,0" Checked="LocalOnlyCheck_Changed" Unchecked="LocalOnlyCheck_Changed" />
           <TextBlock Text="在线关闭时，翻译会依次尝试内置词典与本地模型；两者都不可用时会明确提示。" Style="{StaticResource CaptionText}" TextWrapping="Wrap" Margin="0,4,0,0" />
           <Border Height="1" Background="{DynamicResource Border}" Margin="0,14" />
@@ -101,6 +119,13 @@
           <CheckBox Name="OriginalCheck" Content="同时保存原图（占用更多磁盘）" Margin="0,8,0,0" />
           <Border Height="1" Background="{DynamicResource Border}" Margin="0,14" />
           <TextBlock Text="识别与数据" Style="{StaticResource CaptionText}" />
+          <TextBlock Text="OCR 识别模式" Style="{StaticResource CaptionText}" Margin="0,6,0,4" />
+          <ComboBox Name="OcrQualityCombo" Width="200" HorizontalAlignment="Left">
+            <ComboBoxItem Content="快速（省时间）" Tag="Fast" />
+            <ComboBoxItem Content="标准（推荐）" Tag="Balanced" />
+            <ComboBoxItem Content="高质量（多版本比较）" Tag="High" />
+          </ComboBox>
+          <TextBlock Text="快速：原图/深色反色；标准：自动增强；高质量：多版本比较，耗时更长。" Style="{StaticResource CaptionText}" TextWrapping="Wrap" Margin="0,4,0,0" />
           <TextBlock Name="OcrStatusText" Style="{StaticResource CaptionText}" TextWrapping="Wrap" Margin="0,6,0,0" />
           <TextBlock Name="DictionaryStatusText" Style="{StaticResource CaptionText}" TextWrapping="Wrap" Margin="0,4,0,0" />
           <TextBlock Name="ModelStatusText" Style="{StaticResource CaptionText}" TextWrapping="Wrap" Margin="0,4,0,0" />

@@ -15,9 +15,16 @@ namespace KuangYi.Core.Services;
 /// </summary>
 public sealed class TranslationCache
 {
-    private const int MaxEntries = 1000;
+    private const int DefaultMaxEntries = 1000;
     private readonly string _path;
     private readonly SemaphoreSlim _gate = new(1, 1);
+    private int _maxEntries = DefaultMaxEntries;
+
+    public int MaxEntries
+    {
+        get => _maxEntries;
+        set => _maxEntries = Math.Clamp(value, 1, 5000);
+    }
 
     public TranslationCache(string path)
     {
@@ -46,10 +53,40 @@ public sealed class TranslationCache
         }
     }
 
-    public static string CreateKey(string text, string source, string target, string mode, string glossaryVersion)
+    public static string CreateKey(string text, string source, string target, string mode, string glossaryVersion, string fingerprint = "")
     {
-        var input = string.Join("\u001f", source, target, mode, glossaryVersion, text);
+        var input = string.Join("\u001f", source, target, mode, glossaryVersion, fingerprint, text);
         var hash = SHA256.HashData(Encoding.UTF8.GetBytes(input));
+        return Convert.ToHexString(hash);
+    }
+
+    public static string ComputeFingerprint(string appVersion, string modelRoot)
+    {
+        var builder = new StringBuilder();
+        builder.Append(appVersion).Append('|');
+        try
+        {
+            if (Directory.Exists(modelRoot))
+            {
+                foreach (var file in Directory.EnumerateFiles(modelRoot, "*", SearchOption.AllDirectories)
+                             .OrderBy(f => f, StringComparer.OrdinalIgnoreCase))
+                {
+                    var info = new FileInfo(file);
+                    builder.Append(Path.GetRelativePath(modelRoot, file))
+                        .Append(':')
+                        .Append(info.Length)
+                        .Append(':')
+                        .Append(info.LastWriteTimeUtc.Ticks)
+                        .Append(';');
+                }
+            }
+        }
+        catch
+        {
+            // A missing or unreadable model directory still yields a stable app-version fingerprint.
+        }
+
+        var hash = SHA256.HashData(Encoding.UTF8.GetBytes(builder.ToString()));
         return Convert.ToHexString(hash);
     }
 

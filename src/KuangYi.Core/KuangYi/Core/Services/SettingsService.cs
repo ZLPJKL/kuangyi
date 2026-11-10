@@ -99,6 +99,13 @@ public sealed class SettingsService
 			onlineProvider = ((!(text2 == "deepl")) ? "mymemory" : "deepl");
 		}
 		s.OnlineProvider = onlineProvider;
+		s.CacheMaxEntries = Math.Clamp(s.CacheMaxEntries, 100, 5000);
+		s.OcrQuality = s.OcrQuality?.Trim().ToLowerInvariant() switch
+		{
+			"fast" => "Fast",
+			"high" => "High",
+			_ => "Balanced",
+		};
 		s.OnlineTimeoutSeconds = Math.Clamp(s.OnlineTimeoutSeconds, 3, 30);
 		s.HistoryLimit = Math.Clamp(s.HistoryLimit, 10, 500);
 		s.HistoryDays = Math.Clamp(s.HistoryDays, 1, 3650);

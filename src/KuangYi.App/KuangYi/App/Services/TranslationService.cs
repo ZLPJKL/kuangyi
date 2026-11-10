@@ -29,6 +29,8 @@ public sealed class TranslationService
 
 	public GlossaryService Glossary => _glossary;
 
+	public string CacheFingerprint { get; }
+
 	public bool DictionaryAvailable => _dictionary.IsAvailable;
 
 	public bool OfflineAvailable => _offline.IsAvailable;
@@ -43,6 +45,13 @@ public sealed class TranslationService
 		_offline = new OfflineModelProvider(modelRoot ?? OfflineModelProvider.ResolveModelRoot());
 		_cache = new TranslationCache(AppPaths.TranslationCacheDb);
 		_glossary = new GlossaryService(AppPaths.GlossaryFile);
+		var appVersion = typeof(TranslationService).Assembly.GetName().Version?.ToString() ?? "unknown";
+		CacheFingerprint = TranslationCache.ComputeFingerprint(appVersion, _offline.ModelRoot);
+	}
+
+	public void ConfigureCache(int maxEntries)
+	{
+		_cache.MaxEntries = maxEntries;
 	}
 
 	public void TrimMemory()

@@ -2,7 +2,7 @@
 
 [![Platform](https://img.shields.io/badge/platform-Windows%2010%20%7C%2011-0078D4?logo=windows)](https://www.microsoft.com/windows)
 [![.NET](https://img.shields.io/badge/.NET-10-512BD4?logo=dotnet)](https://dotnet.microsoft.com/)
-[![Version](https://img.shields.io/badge/version-1.0.3-blue)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.1.0-blue)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 > 按 `F2` 框选屏幕任意区域，本地 OCR 识别后直接翻译。离线可用，无广告、无账号、无付费墙。
@@ -25,6 +25,7 @@
 - 按物理像素裁剪，多显示器坐标一致。
 - 自动选择 OCR 引擎；深色背景自动增加反色识别。
 - OCR 预处理增强：小图自动放大、低对比度图像自动增强。
+- 支持快速 / 标准 / 高质量三档 OCR 模式。
 - 结果显示识别语言、OCR 引擎和估算置信度。
 - 手动切换源语言会重新对原图 OCR，而不是拿旧乱码重译。
 - 缺少 Windows 语言包时明确提示安装路径。
@@ -35,7 +36,7 @@
 - 离线模型覆盖 8 个方向：中英直连、英俄/英日/英韩枢轴。
 - 在线源：DeepL Free API（需 Key）、MyMemory（免 Key）、LibreTranslate（自建/私有实例）。
 - 在线失败时显示原因，并提示已回退离线模型。
-- 翻译缓存：相同原文、语言方向和服务模式重复翻译时直接复用结果。
+- 翻译缓存：可开关、可设置上限、显示当前条数；相同原文、语言方向和服务模式重复翻译时直接复用结果。
 - 术语表：按语言方向强制指定术语译法，修改后下一次翻译立即生效。
 - 支持修改原文后重译、切换目标语言、以译文为源继续翻译。
 - 长文本按段落切分，保留段落结构。

@@ -5,7 +5,17 @@
 
   %LOCALAPPDATA%\KuangYi\glossary.txt
 
-也可以在框译设置 → 术语表 → 打开术语表 直接编辑。
+在框译设置 → 术语表 → 打开术语表，内置编辑器支持：
+
+- 直接编辑；
+- 导入 CSV；
+- 导出 CSV。
+
+CSV 列格式：
+
+  source_lang,target_lang,source,target
+  en,zh,Account,账户
+  ja,zh,読書,阅读
 
 格式：
 
