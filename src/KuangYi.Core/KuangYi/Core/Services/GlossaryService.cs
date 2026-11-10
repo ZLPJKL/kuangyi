@@ -1,0 +1,238 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
+
+namespace KuangYi.Core.Services;
+
+public sealed record GlossaryApplication(string Text, IReadOnlyDictionary<int, string> Replacements);
+
+/// <summary>
+/// Simple user-editable glossary. Format:
+///   en>zh Account=账户
+///   ja>zh 読書=阅读
+/// Lines starting with # are ignored; a missing direction applies to every pair.
+/// </summary>
+public sealed class GlossaryService
+{
+    private static readonly Regex PlaceholderRegex = new(
+        @"\[*\s*G(\d+)\s*\]*",
+        RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+    private readonly object _gate = new();
+    private readonly string _path;
+    private List<Entry> _cachedEntries = new();
+    private DateTime _cachedWriteTime;
+    private long _cachedLength = -1;
+
+    public GlossaryService(string path)
+    {
+        _path = path;
+        EnsureDefaultFile();
+    }
+
+    public string FilePath => _path;
+
+    public string Version
+    {
+        get
+        {
+            try
+            {
+                var file = new FileInfo(_path);
+                return file.Exists
+                    ? $"{file.LastWriteTimeUtc.Ticks}:{file.Length}"
+                    : "0";
+            }
+            catch
+            {
+                return "0";
+            }
+        }
+    }
+
+    public int Count => LoadEntries().Count;
+
+    public GlossaryApplication Prepare(string text, string sourceCode, string targetCode)
+    {
+        if (string.IsNullOrEmpty(text))
+        {
+            return new GlossaryApplication(text, new Dictionary<int, string>());
+        }
+
+        var entries = LoadEntries()
+            .Where(e => e.Matches(sourceCode, targetCode))
+            .OrderByDescending(e => e.Source.Length)
+            .ToList();
+        if (entries.Count == 0)
+        {
+            return new GlossaryApplication(text, new Dictionary<int, string>());
+        }
+
+        var prepared = text;
+        var replacements = new Dictionary<int, string>();
+        foreach (var entry in entries)
+        {
+            var placeholder = $"[[G{replacements.Count + 1}]]";
+            var replaced = prepared.Replace(
+                entry.Source,
+                placeholder,
+                StringComparison.OrdinalIgnoreCase);
+            if (string.Equals(replaced, prepared, StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            replacements[replacements.Count + 1] = entry.Target;
+            prepared = replaced;
+        }
+
+        return new GlossaryApplication(prepared, replacements);
+    }
+
+    public string Restore(string translated, IReadOnlyDictionary<int, string> replacements)
+    {
+        if (string.IsNullOrEmpty(translated) || replacements.Count == 0)
+        {
+            return translated;
+        }
+
+        return PlaceholderRegex.Replace(translated, match =>
+        {
+            return int.TryParse(match.Groups[1].Value, out var index)
+                   && replacements.TryGetValue(index, out var target)
+                ? target
+                : match.Value;
+        });
+    }
+
+    public void OpenInEditor()
+    {
+        EnsureDefaultFile();
+        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+        {
+            FileName = _path,
+            UseShellExecute = true
+        });
+    }
+
+    private List<Entry> LoadEntries()
+    {
+        lock (_gate)
+        {
+            try
+            {
+                var file = new FileInfo(_path);
+                if (!file.Exists)
+                {
+                    EnsureDefaultFile();
+                    file.Refresh();
+                }
+
+                if (_cachedLength == file.Length && _cachedWriteTime == file.LastWriteTimeUtc)
+                {
+                    return _cachedEntries;
+                }
+
+                var entries = new List<Entry>();
+                foreach (var raw in File.ReadAllLines(_path, Encoding.UTF8))
+                {
+                    var line = raw.Trim();
+                    if (line.Length == 0 || line.StartsWith("#"))
+                    {
+                        continue;
+                    }
+
+                    var equals = line.IndexOf('=');
+                    if (equals <= 0 || equals >= line.Length - 1)
+                    {
+                        continue;
+                    }
+
+                    var left = line[..equals].Trim();
+                    var target = line[(equals + 1)..].Trim();
+                    string source;
+                    string? direction = null;
+                    var arrow = left.IndexOf('>');
+                    if (arrow > 0)
+                    {
+                        var separator = left.IndexOf(' ', arrow);
+                        if (separator > arrow)
+                        {
+                            direction = left[..separator].Trim().ToLowerInvariant();
+                            source = left[(separator + 1)..].Trim();
+                        }
+                        else
+                        {
+                            // No term after the direction is not a valid entry.
+                            continue;
+                        }
+                    }
+                    else
+                    {
+                        source = left;
+                    }
+
+                    if (source.Length == 0 || target.Length == 0)
+                    {
+                        continue;
+                    }
+
+                    entries.Add(new Entry(direction, source, target));
+                }
+
+                _cachedEntries = entries;
+                _cachedWriteTime = file.LastWriteTimeUtc;
+                _cachedLength = file.Length;
+                return entries;
+            }
+            catch
+            {
+                return new List<Entry>();
+            }
+        }
+    }
+
+    private void EnsureDefaultFile()
+    {
+        try
+        {
+            if (File.Exists(_path))
+            {
+                return;
+            }
+
+            Directory.CreateDirectory(Path.GetDirectoryName(_path)!);
+            File.WriteAllText(_path, """
+                # 框译术语表
+                # 每行：源语言>目标语言 原文=译文
+                # 不写方向则对所有语言方向生效。
+                #
+                # 示例：
+                # en>zh Account=账户
+                # en>zh prompt=提示词
+                # ja>zh 読書=阅读
+                # API=API
+                """, new UTF8Encoding(false));
+        }
+        catch
+        {
+        }
+    }
+
+    private sealed record Entry(string? Direction, string Source, string Target)
+    {
+        public bool Matches(string sourceCode, string targetCode)
+        {
+            if (string.IsNullOrEmpty(Direction))
+            {
+                return true;
+            }
+
+            var pair = $"{sourceCode}>{targetCode}";
+            return string.Equals(Direction, pair, StringComparison.OrdinalIgnoreCase);
+        }
+    }
+}

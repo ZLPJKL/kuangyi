@@ -2,7 +2,7 @@
 
 [![Platform](https://img.shields.io/badge/platform-Windows%2010%20%7C%2011-0078D4?logo=windows)](https://www.microsoft.com/windows)
 [![.NET](https://img.shields.io/badge/.NET-10-512BD4?logo=dotnet)](https://dotnet.microsoft.com/)
-[![Version](https://img.shields.io/badge/version-1.0.1-blue)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.0.2-blue)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 > 按 `F2` 框选屏幕任意区域，本地 OCR 识别后直接翻译。离线可用，无广告、无账号、无付费墙。
@@ -24,6 +24,7 @@
 - 冻结屏幕、全屏遮罩拖选、实时尺寸提示；`Esc` 或右键取消。
 - 按物理像素裁剪，多显示器坐标一致。
 - 自动选择 OCR 引擎；深色背景自动增加反色识别。
+- OCR 预处理增强：小图自动放大、低对比度图像自动增强。
 - 结果显示识别语言、OCR 引擎和估算置信度。
 - 手动切换源语言会重新对原图 OCR，而不是拿旧乱码重译。
 - 缺少 Windows 语言包时明确提示安装路径。
@@ -34,6 +35,8 @@
 - 离线模型覆盖 8 个方向：中英直连、英俄/英日/英韩枢轴。
 - 在线源：DeepL Free API（需 Key）、MyMemory（免 Key）、LibreTranslate（自建/私有实例）。
 - 在线失败时显示原因，并提示已回退离线模型。
+- 翻译缓存：相同原文、语言方向和服务模式重复翻译时直接复用结果。
+- 术语表：按语言方向强制指定术语译法，修改后下一次翻译立即生效。
 - 支持修改原文后重译、切换目标语言、以译文为源继续翻译。
 - 长文本按段落切分，保留段落结构。
 
@@ -136,12 +139,25 @@ powershell -ExecutionPolicy Bypass -File scripts/download-models.ps1
 %LOCALAPPDATA%\KuangYi\
 ├─ settings.json        设置
 ├─ history.db           SQLite 历史
+├─ translation-cache.db 翻译缓存
+├─ glossary.txt         用户术语表
 ├─ thumbs\              历史缩略图
 ├─ models\              模型回退目录
 └─ logs\                滚动日志
 ```
 
 模型查找顺序：程序目录 `models` → `%LOCALAPPDATA%\KuangYi\models`。
+
+术语表格式：
+
+```text
+en>zh Account=账户
+en>zh prompt=提示词
+ja>zh 読書=阅读
+API=API
+```
+
+设置 → 术语表 → 打开术语表即可编辑；设置 → 识别与数据 → 清除翻译缓存可清空缓存。
 
 在线翻译配置：
 
@@ -157,6 +173,7 @@ powershell -ExecutionPolicy Bypass -File scripts/download-models.ps1
 - [离线模型说明](docs/离线模型.md)
 - [DeepL 注册及使用教程](docs/DeepL注册及使用教程.txt)
 - [LibreTranslate 自建教程](docs/LibreTranslate自建教程.txt)
+- [术语表说明](docs/术语表说明.txt)
 - [第三方组件与模型许可](THIRD-PARTY-NOTICES.md)
 - [更新日志](CHANGELOG.md)
 

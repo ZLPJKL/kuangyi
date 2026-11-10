@@ -95,9 +95,19 @@ public sealed class OcrService
 		}
 		BitmapSource bitmapSource = Prepare(image);
 		List<BitmapSource> list = new List<BitmapSource> { bitmapSource };
+		BitmapSource? inverted = null;
 		if (NeedsInvertedCopy(bitmapSource))
 		{
-			list.Add(Invert(bitmapSource));
+			inverted = Invert(bitmapSource);
+			list.Add(inverted);
+		}
+		if (NeedsContrastVariant(bitmapSource))
+		{
+			BitmapSource enhanced = EnhanceContrast(inverted ?? bitmapSource);
+			if (!ReferenceEquals(enhanced, bitmapSource))
+			{
+				list.Add(enhanced);
+			}
 		}
 		List<(OcrEngine Engine, string Tag)> engines = CreateEngines(preferred);
 		OcrOutput best = null;
@@ -182,6 +192,89 @@ public sealed class OcrService
 		{
 			return false;
 		}
+	}
+
+	private static bool NeedsContrastVariant(BitmapSource image)
+	{
+		try
+		{
+			FormatConvertedBitmap converted = new FormatConvertedBitmap(image, PixelFormats.Bgra32, null, 0.0);
+			int stride = converted.PixelWidth * 4;
+			byte[] pixels = new byte[stride * converted.PixelHeight];
+			converted.CopyPixels(pixels, stride, 0);
+
+			int min = 255;
+			int max = 0;
+			long sum = 0;
+			long sumSquares = 0;
+			long sampled = 0;
+			for (int i = 0; i + 3 < pixels.Length; i += 16)
+			{
+				int luminance = (pixels[i + 2] * 299 + pixels[i + 1] * 587 + pixels[i] * 114) / 1000;
+				min = Math.Min(min, luminance);
+				max = Math.Max(max, luminance);
+				sum += luminance;
+				sumSquares += luminance * luminance;
+				sampled++;
+			}
+
+			if (sampled == 0)
+			{
+				return false;
+			}
+
+			double mean = (double)sum / sampled;
+			double variance = (double)sumSquares / sampled - mean * mean;
+			return max - min < 90 || variance < 900;
+		}
+		catch
+		{
+			return false;
+		}
+	}
+
+	private static BitmapSource EnhanceContrast(BitmapSource image)
+	{
+		FormatConvertedBitmap converted = new FormatConvertedBitmap(image, PixelFormats.Bgra32, null, 0.0);
+		int stride = converted.PixelWidth * 4;
+		byte[] pixels = new byte[stride * converted.PixelHeight];
+		converted.CopyPixels(pixels, stride, 0);
+
+		int min = 255;
+		int max = 0;
+		for (int i = 0; i + 3 < pixels.Length; i += 4)
+		{
+			int luminance = (pixels[i + 2] * 299 + pixels[i + 1] * 587 + pixels[i] * 114) / 1000;
+			min = Math.Min(min, luminance);
+			max = Math.Max(max, luminance);
+		}
+
+		if (max - min < 8)
+		{
+			return image;
+		}
+
+		double scale = 255.0 / (max - min);
+		for (int i = 0; i + 3 < pixels.Length; i += 4)
+		{
+			int luminance = (pixels[i + 2] * 299 + pixels[i + 1] * 587 + pixels[i] * 114) / 1000;
+			byte stretched = (byte)Math.Clamp((luminance - min) * scale, 0.0, 255.0);
+			pixels[i] = stretched;
+			pixels[i + 1] = stretched;
+			pixels[i + 2] = stretched;
+		}
+
+		BitmapSource enhanced = BitmapSource.Create(
+			converted.PixelWidth,
+			converted.PixelHeight,
+			converted.DpiX,
+			converted.DpiY,
+			PixelFormats.Bgra32,
+			null,
+			pixels,
+			stride);
+		enhanced.Freeze();
+		return enhanced;
 	}
 
 	private static BitmapSource Invert(BitmapSource image)
@@ -521,11 +614,15 @@ public sealed class OcrService
 	{
 		uint maxImageDimension = OcrEngine.MaxImageDimension;
 		double num = 1.0;
-		if (image.PixelWidth < 350 && image.PixelHeight < 350)
+		if (image.PixelWidth < 450 || image.PixelHeight < 280)
 		{
 			num = 2.0;
 		}
-		else if (image.PixelWidth < 600)
+		else if (image.PixelWidth < 700)
+		{
+			num = 1.6;
+		}
+		else if (image.PixelWidth < 1200)
 		{
 			num = 1.25;
 		}

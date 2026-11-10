@@ -60,6 +60,7 @@ public partial class SettingsWindow : Window, IComponentConnector
 		StartupCheck.IsChecked = settings.StartWithWindows;
 		ErrorText.Text = string.Empty;
 		TestOnlineText.Text = string.Empty;
+		GlossaryStatusText.Text = $"已加载 {App.Current.Translations.Glossary.Count} 条术语";
 		UpdateOnlineState();
 		UpdateEnvironmentStatus();
 		_initializing = false;
@@ -287,6 +288,31 @@ public partial class SettingsWindow : Window, IComponentConnector
 	private void ShowError(string message)
 	{
 		ErrorText.Text = message;
+	}
+
+	private void OpenGlossary_Click(object sender, RoutedEventArgs e)
+	{
+		try
+		{
+			App.Current.Translations.Glossary.OpenInEditor();
+		}
+		catch (Exception ex)
+		{
+			ShowError("无法打开术语表：" + ex.Message);
+		}
+	}
+
+	private async void ClearCache_Click(object sender, RoutedEventArgs e)
+	{
+		try
+		{
+			int count = await App.Current.Translations.Cache.ClearAsync();
+			ShowError($"已清除 {count} 条翻译缓存。");
+		}
+		catch (Exception ex)
+		{
+			ShowError("清除缓存失败：" + ex.Message);
+		}
 	}
 
 	private void OpenDataFolder_Click(object sender, RoutedEventArgs e)

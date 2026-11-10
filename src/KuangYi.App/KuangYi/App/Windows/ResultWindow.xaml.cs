@@ -215,7 +215,32 @@ public partial class ResultWindow : Window, IComponentConnector
 		Stopwatch watch = Stopwatch.StartNew();
 		try
 		{
-			TranslationOutcome translationOutcome = await App.Current.Translations.CreatePipeline(App.Current.Settings).TranslateAsync(new TranslationRequest(text, source, target), ct);
+			GlossaryService glossary = App.Current.Translations.Glossary;
+			GlossaryApplication prepared = glossary.Prepare(text, source, target);
+			AppSettings settings = App.Current.Settings;
+			string mode = settings.LocalOnly ? "offline" : (settings.OnlineEnabled ? settings.OnlineProvider : "offline");
+			string cacheKey = TranslationCache.CreateKey(text, source, target, mode, glossary.Version);
+			if (!string.Equals(source, target, StringComparison.OrdinalIgnoreCase))
+			{
+				TranslationResult? cached = await App.Current.Translations.Cache.TryGetAsync(cacheKey, ct);
+				if (cached != null)
+				{
+					watch.Stop();
+					if (version != _translateVersion)
+					{
+						return;
+					}
+
+					OutputBox.Text = cached.Text;
+					ProviderText.Text = $"{cached.ProviderName} · {Languages.Resolve(source).NameZh} → {Languages.Resolve(target).NameZh}";
+					ProviderBadge.Visibility = Visibility.Visible;
+					EnableOnlineButton.Visibility = Visibility.Collapsed;
+					SetStatus($"缓存命中 · {watch.ElapsedMilliseconds} ms");
+					return;
+				}
+			}
+
+			TranslationOutcome translationOutcome = await App.Current.Translations.CreatePipeline(settings).TranslateAsync(new TranslationRequest(prepared.Text, source, target), ct);
 			if (version != _translateVersion)
 			{
 				return;
@@ -226,15 +251,22 @@ public partial class ResultWindow : Window, IComponentConnector
 				TranslationResult result = translationOutcome.Result;
 				if ((object)result != null)
 				{
-					OutputBox.Text = result.Text;
-					ProviderText.Text = $"{result.ProviderName} · {Languages.Resolve(source).NameZh} → {Languages.Resolve(target).NameZh}";
+					string translated = glossary.Restore(result.Text, prepared.Replacements);
+					TranslationResult restored = new TranslationResult(translated, result.ProviderId, result.ProviderName, result.IsOffline);
+					OutputBox.Text = restored.Text;
+					ProviderText.Text = $"{restored.ProviderName} · {Languages.Resolve(source).NameZh} → {Languages.Resolve(target).NameZh}";
 					ProviderBadge.Visibility = Visibility.Visible;
 					EnableOnlineButton.Visibility = Visibility.Collapsed;
 					string value = BuildOnlineFailureNote(translationOutcome);
 					SetStatus(string.Equals(source, target, StringComparison.OrdinalIgnoreCase) ? "源语言与目标语言相同" : $"完成 · {watch.ElapsedMilliseconds} ms{value}");
+					if (!string.Equals(source, target, StringComparison.OrdinalIgnoreCase)
+						&& (string.Equals(mode, "offline", StringComparison.OrdinalIgnoreCase) || !restored.IsOffline))
+					{
+						await App.Current.Translations.Cache.StoreAsync(cacheKey, text, restored, ct);
+					}
 					if (saveHistory && !_suppressHistory)
 					{
-						await SaveHistoryAsync(text, result, source, target, watch.ElapsedMilliseconds);
+						await SaveHistoryAsync(text, restored, source, target, watch.ElapsedMilliseconds);
 					}
 					return;
 				}

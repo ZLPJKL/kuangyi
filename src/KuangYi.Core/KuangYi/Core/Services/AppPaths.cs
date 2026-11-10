@@ -13,6 +13,10 @@ public static class AppPaths
 
 	public static string HistoryDb => Path.Combine(Root, "history.db");
 
+	public static string TranslationCacheDb => Path.Combine(Root, "translation-cache.db");
+
+	public static string GlossaryFile => Path.Combine(Root, "glossary.txt");
+
 	public static string ThumbnailDir => Path.Combine(Root, "thumbs");
 
 	public static string OriginalDir => Path.Combine(Root, "originals");

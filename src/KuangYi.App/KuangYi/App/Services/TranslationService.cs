@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using KuangYi.Core.Models;
 using KuangYi.Core.Offline;
+using KuangYi.Core.Services;
 using KuangYi.Core.Services.Translation;
 
 namespace KuangYi.App.Services;
@@ -20,6 +21,14 @@ public sealed class TranslationService
 
 	private readonly OfflineModelProvider _offline;
 
+	private readonly TranslationCache _cache;
+
+	private readonly GlossaryService _glossary;
+
+	public TranslationCache Cache => _cache;
+
+	public GlossaryService Glossary => _glossary;
+
 	public bool DictionaryAvailable => _dictionary.IsAvailable;
 
 	public bool OfflineAvailable => _offline.IsAvailable;
@@ -32,6 +41,8 @@ public sealed class TranslationService
 	{
 		_dictionary = new DictionaryProvider(dictionaryPath);
 		_offline = new OfflineModelProvider(modelRoot ?? OfflineModelProvider.ResolveModelRoot());
+		_cache = new TranslationCache(AppPaths.TranslationCacheDb);
+		_glossary = new GlossaryService(AppPaths.GlossaryFile);
 	}
 
 	public void TrimMemory()
