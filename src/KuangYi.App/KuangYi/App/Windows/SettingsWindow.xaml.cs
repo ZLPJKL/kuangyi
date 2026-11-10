@@ -35,6 +35,34 @@ public partial class SettingsWindow : Window, IComponentConnector
 			ForceClosed?.Invoke(this, EventArgs.Empty);
 		};
 		Reload();
+		ShowSection("General");
+	}
+
+	private void Nav_Click(object sender, RoutedEventArgs e)
+	{
+		if (sender is Button { Tag: string tag })
+		{
+			ShowSection(tag);
+		}
+	}
+
+	private void ShowSection(string tag)
+	{
+		GeneralPanel.Visibility = tag == "General" ? Visibility.Visible : Visibility.Collapsed;
+		TranslationPanel.Visibility = tag == "Translation" ? Visibility.Visible : Visibility.Collapsed;
+		RecognitionPanel.Visibility = tag == "Recognition" ? Visibility.Visible : Visibility.Collapsed;
+		HistoryPanel.Visibility = tag == "History" ? Visibility.Visible : Visibility.Collapsed;
+		AboutPanel.Visibility = tag == "About" ? Visibility.Visible : Visibility.Collapsed;
+
+		foreach (var button in NavButtons.Children.OfType<Button>())
+		{
+			button.Style = (Style)FindResource(
+				string.Equals(button.Tag as string, tag, StringComparison.Ordinal)
+					? "NavButtonActive"
+					: "NavButton");
+		}
+
+		ContentScroll.ScrollToTop();
 	}
 
 	public void Reload()
