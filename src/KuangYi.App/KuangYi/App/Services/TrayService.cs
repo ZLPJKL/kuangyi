@@ -14,6 +14,8 @@ public sealed class TrayService : IDisposable
 {
 	private readonly NotifyIcon _icon;
 
+	private readonly RoundedContextMenu _menu;
+
 	private readonly ToolStripMenuItem _captureItem;
 
 	private readonly ToolStripMenuItem _pauseItem;
@@ -38,64 +40,86 @@ public sealed class TrayService : IDisposable
 
 	public TrayService()
 	{
-		ContextMenuStrip contextMenuStrip = new ContextMenuStrip
+		_menu = new RoundedContextMenu
 		{
-			ShowImageMargin = false,
-			RenderMode = ToolStripRenderMode.System
+			ShowImageMargin = true,
+			ShowCheckMargin = false,
+			ImageScalingSize = new System.Drawing.Size(18, 18),
+			Font = new Font("Microsoft YaHei UI", 9.5f, System.Drawing.FontStyle.Regular, GraphicsUnit.Point),
+			BackColor = Color.White,
+			ForeColor = Color.FromArgb(26, 26, 26),
+			Padding = new Padding(7, 7, 7, 7),
+			MinimumSize = new System.Drawing.Size(228, 0),
+			RenderMode = ToolStripRenderMode.Professional,
+			Renderer = new TrayMenuRenderer(),
+			DropShadowEnabled = true
 		};
-		ToolStripMenuItem toolStripMenuItem = new ToolStripMenuItem("显示主窗口");
-		toolStripMenuItem.Click += (object? _, EventArgs _) =>
+
+		var header = new ToolStripLabel("框译  ·  屏幕框选翻译")
+		{
+			AutoSize = false,
+			Width = 214,
+			Height = 34,
+			TextAlign = ContentAlignment.MiddleLeft,
+			Font = new Font(_menu.Font.FontFamily, 10f, System.Drawing.FontStyle.Bold, GraphicsUnit.Point),
+			ForeColor = Color.FromArgb(31, 111, 235),
+			Padding = new Padding(12, 7, 12, 4)
+		};
+
+		ToolStripMenuItem showItem = CreateItem("显示主窗口", "\uE80F");
+		showItem.Click += (object? _, EventArgs _) =>
 		{
 			ShowRequested?.Invoke(this, EventArgs.Empty);
 		};
-		ToolStripMenuItem toolStripMenuItem2 = new ToolStripMenuItem("显示翻译结果");
-		toolStripMenuItem2.Click += (object? _, EventArgs _) =>
+		ToolStripMenuItem resultItem = CreateItem("显示翻译结果", "\uE8A5");
+		resultItem.Click += (object? _, EventArgs _) =>
 		{
 			ResultRequested?.Invoke(this, EventArgs.Empty);
 		};
-		_captureItem = new ToolStripMenuItem("框选翻译 (F2)")
-		{
-			Font = new Font(contextMenuStrip.Font, System.Drawing.FontStyle.Bold)
-		};
+		_captureItem = CreateItem("框选翻译 (F2)", "\uE123", accent: true, primary: true);
 		_captureItem.Click += (object? _, EventArgs _) =>
 		{
 			CaptureRequested?.Invoke(this, EventArgs.Empty);
 		};
-		ToolStripMenuItem toolStripMenuItem3 = new ToolStripMenuItem("历史记录");
-		toolStripMenuItem3.Click += (object? _, EventArgs _) =>
+		ToolStripMenuItem historyItem = CreateItem("历史记录", "\uE81C");
+		historyItem.Click += (object? _, EventArgs _) =>
 		{
 			HistoryRequested?.Invoke(this, EventArgs.Empty);
 		};
-		ToolStripMenuItem toolStripMenuItem4 = new ToolStripMenuItem("设置");
-		toolStripMenuItem4.Click += (object? _, EventArgs _) =>
+		ToolStripMenuItem settingsItem = CreateItem("设置", "\uE713");
+		settingsItem.Click += (object? _, EventArgs _) =>
 		{
 			SettingsRequested?.Invoke(this, EventArgs.Empty);
 		};
-		_pauseItem = new ToolStripMenuItem("暂停热键");
+		_pauseItem = CreateItem("暂停热键", "\uE769");
 		_pauseItem.Click += (object? _, EventArgs _) =>
 		{
 			PauseToggled?.Invoke(this, !_pauseItem.Checked);
 		};
-		ToolStripMenuItem toolStripMenuItem5 = new ToolStripMenuItem("退出");
-		toolStripMenuItem5.Click += (object? _, EventArgs _) =>
+		ToolStripMenuItem exitItem = CreateItem("退出", "\uE7E8");
+		exitItem.Click += (object? _, EventArgs _) =>
 		{
 			ExitRequested?.Invoke(this, EventArgs.Empty);
 		};
-		contextMenuStrip.Items.Add(toolStripMenuItem);
-		contextMenuStrip.Items.Add(toolStripMenuItem2);
-		contextMenuStrip.Items.Add(_captureItem);
-		contextMenuStrip.Items.Add(toolStripMenuItem3);
-		contextMenuStrip.Items.Add(toolStripMenuItem4);
-		contextMenuStrip.Items.Add(new ToolStripSeparator());
-		contextMenuStrip.Items.Add(_pauseItem);
-		contextMenuStrip.Items.Add(toolStripMenuItem5);
+
+		_menu.Items.Add(header);
+		_menu.Items.Add(new ToolStripSeparator());
+		_menu.Items.Add(showItem);
+		_menu.Items.Add(resultItem);
+		_menu.Items.Add(_captureItem);
+		_menu.Items.Add(historyItem);
+		_menu.Items.Add(settingsItem);
+		_menu.Items.Add(new ToolStripSeparator());
+		_menu.Items.Add(_pauseItem);
+		_menu.Items.Add(exitItem);
+
 		_currentIcon = CreateIcon();
 		_icon = new NotifyIcon
 		{
 			Icon = _currentIcon,
 			Text = "框译 · 屏幕框选翻译",
 			Visible = true,
-			ContextMenuStrip = contextMenuStrip
+			ContextMenuStrip = _menu
 		};
 		_icon.MouseClick += (object? _, MouseEventArgs e) =>
 		{
@@ -111,10 +135,32 @@ public sealed class TrayService : IDisposable
 		_captureItem.Text = (registered ? ("框选翻译 (" + gesture + ")") : ("框选翻译 (" + gesture + "，注册失败)"));
 	}
 
+	private static ToolStripMenuItem CreateItem(string text, string glyph, bool accent = false, bool primary = false)
+	{
+		var item = new ToolStripMenuItem(text)
+		{
+			Image = TrayMenuIcons.Create(glyph, accent),
+			ImageAlign = ContentAlignment.MiddleLeft,
+			TextImageRelation = TextImageRelation.ImageBeforeText,
+			Padding = new Padding(2, 7, 10, 7),
+			AutoSize = true,
+			Tag = primary ? "primary" : null
+		};
+		if (primary)
+		{
+			item.Font = new Font("Microsoft YaHei UI", 9.5f, System.Drawing.FontStyle.Bold, GraphicsUnit.Point);
+		}
+
+		return item;
+	}
+
 	public void SetPaused(bool paused)
 	{
 		_pauseItem.Checked = paused;
 		_pauseItem.Text = (paused ? "恢复热键" : "暂停热键");
+		var oldImage = _pauseItem.Image;
+		_pauseItem.Image = TrayMenuIcons.Create(paused ? "\uE768" : "\uE769");
+		oldImage?.Dispose();
 	}
 
 	public void PromoteInNotificationArea()
@@ -217,6 +263,7 @@ public sealed class TrayService : IDisposable
 	{
 		_icon.Visible = false;
 		_icon.Dispose();
+		_menu.Dispose();
 		_currentIcon?.Dispose();
 	}
 }
