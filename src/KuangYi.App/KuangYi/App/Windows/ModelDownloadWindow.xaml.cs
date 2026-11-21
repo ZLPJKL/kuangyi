@@ -137,7 +137,7 @@ public partial class ModelDownloadWindow : Window
             AppLog.Warn("model release lookup failed: " + ex.Message);
         }
 
-        return "https://github.com/ZLPJKL/kuangyi/releases/download/v1.2.3/KuangYi-v1.2.3-models.zip";
+        return "https://github.com/ZLPJKL/kuangyi/releases/download/models/KuangYi-models.zip";
     }
 
     private static string? FindModelAsset(JsonElement release)
