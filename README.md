@@ -2,238 +2,116 @@
 
 **语言 / Language：** **简体中文** ｜ [English](README.en.md)
 
-> 按 `F2` 框选屏幕任意区域，本地 OCR 识别后直接翻译。离线可用，无广告、无账号、无付费墙。
->
-> **English:** A lightweight Windows screen OCR and offline translation tool. Press `F2`, select a region, and translate instantly. No ads, accounts, or telemetry. [Read the full English README](README.en.md).
+> 按 `F2` 框选屏幕任意区域，本地 OCR 识别后直接翻译。离线可用，无广告、无账号、无遥测。
+
+**English:** A lightweight Windows screen OCR and offline translation tool. Press `F2`, select a region, and translate instantly. [English README](README.en.md)
 
 ## 下载
 
-从 [最新 Release](https://github.com/ZLPJKL/kuangyi/releases/latest) 下载：
+从 [最新 Release](https://github.com/ZLPJKL/kuangyi/releases/latest) 的 **Assets** 下载：
 
-- `KuangYi-v1.2.6-win-x64.zip` —— 程序本体（约 89 MB）
-- `KuangYi-models.zip` —— 离线语言包（约 1.2 GB，固定文件名，不随程序版本变化）
-- `SHA256SUMS.txt` —— 校验值
+- 程序本体：`KuangYi-*-win-x64.zip`（约 89 MB）
+- 离线语言包：`KuangYi-models.zip`（约 1.2 GB，固定文件名）
+- 校验文件：`SHA256SUMS.txt`
 
-解压两个 ZIP 到同一个文件夹，双击 `框译.exe`。没有语言包也能启动，但只能使用在线翻译。
+解压程序本体到任意文件夹；把 `KuangYi-models.zip` 解压到该文件夹下的 `bin` 内，确保最终存在 `bin\models\...` 且与 `bin\KuangYi.exe` 同级。没有语言包也能启动，但离线翻译不可用。
 
-## 简介
+## 特点
 
-框译是面向 Windows 10/11 的桌面框选翻译工具，适合阅读外文资料、图片、PDF、游戏字幕和报错弹窗等不可选中文字的场景。
-
-- **本地优先**：OCR 使用 Windows 自带识别引擎，离线翻译使用随包分发的 ONNX 模型。
+- **本地优先**：Windows OCR + 本地 ONNX 翻译，断网可用。
 - **五语互译**：中文、英语、日语、韩语、俄语。
-- **轻量常驻**：托盘运行，不占任务栏；模型按需加载、用完释放。
-- **可选在线**：DeepL 免费 API、MyMemory、LibreTranslate；失败自动回退离线。
+- **轻量常驻**：托盘运行，不占任务栏；模型按需加载。
+- **可选在线**：DeepL、MyMemory、LibreTranslate，失败自动回退离线。
+- **隐私友好**：无广告、无账号、无遥测；API Key 使用 Windows DPAPI 加密。
 
 ## 功能
 
-### 框选与 OCR
-
-- 全局热键 `F2`，可在设置中录制其他组合键。
-- 冻结屏幕、全屏遮罩拖选、实时尺寸提示；`Esc` 或右键取消。
-- 按物理像素裁剪，多显示器坐标一致。
-- 自动选择 OCR 引擎；深色背景自动增加反色识别。
-- OCR 预处理增强：小图自动放大、低对比度图像自动增强。
-- 支持快速 / 标准 / 高质量三档 OCR 模式。
-- 结果显示识别语言、OCR 引擎和估算置信度。
-- 手动切换源语言会重新对原图 OCR，而不是拿旧乱码重译。
-- 缺少 Windows 语言包时明确提示安装路径。
-
-### 翻译
-
-- 在线翻译（开启时优先）→ 离线模型 → 内置词典，逐级降级并标注实际来源。
-- 离线模型覆盖 8 个方向：中英直连、英俄/英日/英韩枢轴。
-- 在线源：DeepL Free API（需 Key）、MyMemory（免 Key）、LibreTranslate（自建/私有实例）。
-- 在线失败时显示原因，并提示已回退离线模型。
-- 翻译缓存：可开关、可设置上限、显示当前条数；相同原文、语言方向和服务模式重复翻译时直接复用结果。
-- 术语表：按语言方向强制指定术语译法，修改后下一次翻译立即生效。
-- 支持修改原文后重译、切换目标语言、以译文为源继续翻译。
-- 长文本按段落切分，保留段落结构。
-
-### 输入方式
-
-- `F2` 屏幕框选。
-- 剪贴板图片识别（`Ctrl+V`）。
-- 选择本地图片文件识别（PNG/JPG/BMP/GIF/TIF）。
-
-### 界面与隐私
-
-- 主窗口、结果窗默认只在托盘显示，不占任务栏。
-- 结果窗可拖动、置顶、最小化到托盘。
-- 纯白 / 纯黑 / 跟随系统三种主题。
-- 结果窗显示识别信息、翻译来源、耗时。
-- 本地历史：最近记录 50 条或 30 天；收藏独立计数，上限 50 条。
-- 历史支持搜索、收藏、删除、清空、导出 CSV。
-- 在线翻译默认关闭；「仅本地模式」禁止一切网络请求。
-- 日志不记录原文；DeepL / LibreTranslate Key 使用 Windows DPAPI 加密保存。
-
-## 技术栈
-
-| 组件 | 用途 |
-| --- | --- |
-| .NET 10 + WPF | 桌面界面、托盘、窗口与主题 |
-| Windows.Media.Ocr | 本地 OCR |
-| ONNX Runtime | 本地翻译模型推理 |
-| SQLite | 本地历史记录 |
-| Microsoft.Data.Sqlite | 数据访问 |
-
-## 项目结构
-
-```text
-src/KuangYi.App/          WPF 界面、热键、屏幕捕获、OCR、托盘
-src/KuangYi.Core/         设置、历史、语言检测、翻译链、离线模型
-tests/KuangYi.Tests/      核心逻辑自测
-tools/KuangYi.Probe/      OCR / 捕获 / 在线翻译探针
-tools/KuangYi.OfflineProbe/  离线模型端到端探针
-docs/                     使用说明、模型说明、教程
-scripts/                  模型下载和构建脚本
-```
-
-## 环境要求
-
-- Windows 10 1809+ 或 Windows 11，x64
-- .NET 10 SDK（构建）
-- .NET 10 Desktop Runtime（运行非 self-contained 版本）
-- Windows OCR 语言包：设置 → 时间和语言 → 语言和区域 → 添加语言 → 可选功能中安装「光学字符识别」
-
-日/韩/俄 OCR 需要对应系统语言包；应用会在设置页列出缺失项。
+- `F2` 全屏框选，支持多显示器、实时尺寸提示、`Esc` / 右键取消。
+- OCR 自动选择引擎，支持深色反色、低对比度增强、自动裁边和三档质量。
+- 实时区域翻译：独立框选区域，定时刷新，区域外显示蓝色边框。
+- 输入方式：框选、剪贴板图片/文字、本地图片、拖拽图片。
+- 批量翻译：多张图片和 PDF 逐页识别，可导出 CSV。
+- 结果窗：原文/译文卡片、语言切换、复制、贴图、置顶、字号和透明度设置。
+- 翻译缓存、可编辑术语表、CSV 导入导出、历史记录和收藏。
+- 首次启动向导、离线模型下载、数据清理和设置导入导出。
 
 ## 快速开始
+
+### 运行
+
+下载并解压程序本体和语言包到同一目录，双击 `框译.exe`。
 
 ### 构建
 
 ```powershell
 git clone https://github.com/ZLPJKL/kuangyi.git
 cd kuangyi
-
 dotnet restore KuangYi.sln
 dotnet build KuangYi.sln -c Release
-```
-
-### 运行
-
-```powershell
 dotnet run --project src/KuangYi.App
-```
-
-也可以直接运行构建产物：
-
-```text
-src\KuangYi.App\bin\Release\net10.0-windows10.0.19041.0\KuangYi.exe
 ```
 
 ### 测试
 
 ```powershell
 dotnet run --project tests/KuangYi.Tests -c Release
-dotnet run --project tools/KuangYi.OfflineProbe -c Release -- models
 ```
-
-离线模型探针需要 `models` 目录；没有模型时只运行核心自测。
 
 ### 离线模型
 
-模型不包含在源码仓库中，首次构建后需要单独准备：
+模型不包含在 Git 仓库中。发布版可直接下载 `KuangYi-models.zip`；源码构建可运行：
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts/download-models.ps1
+pwsh -File scripts/download-models.ps1
 ```
 
-模型来源、许可证和质量说明见 [docs/离线模型.md](docs/离线模型.md)。
+模型说明、来源和许可证见 [docs/离线模型.md](docs/离线模型.md)。
 
-## 配置与数据
+## 数据与隐私
 
-数据目录：
+数据目录：`%LOCALAPPDATA%\KuangYi\`
 
 ```text
-%LOCALAPPDATA%\KuangYi\
-├─ settings.json        设置
-├─ history.db           SQLite 历史
-├─ translation-cache.db 翻译缓存
-├─ glossary.txt         用户术语表
-├─ thumbs\              历史缩略图
-├─ models\              模型回退目录
-└─ logs\                滚动日志
+settings.json         设置
+history.db            历史记录
+translation-cache.db  翻译缓存
+glossary.txt          术语表
+models\               模型回退目录
+logs\                 日志
 ```
 
-模型查找顺序：程序目录 `models` → `%LOCALAPPDATA%\KuangYi\models`。
-
-术语表格式：
-
-```text
-en>zh Account=账户
-en>zh prompt=提示词
-ja>zh 読書=阅读
-API=API
-```
-
-设置 → 术语表 → 打开术语表即可编辑；设置 → 识别与数据 → 清除翻译缓存可清空缓存。
-
-在线翻译配置：
-
-- DeepL：填写免费 API Key，通常以 `:fx` 结尾；
-- MyMemory：无需 Key；
-- LibreTranslate：填写实例地址，可选 Key。
-
-设置页提供「测试连接」，保存前即可验证。
+OCR 和离线翻译在本机完成。在线翻译默认关闭；日志不记录原文；不收集遥测。
 
 ## 文档
 
+- [常见问题](docs/FAQ.md)
 - [启动说明](docs/启动说明.txt)
-- [离线模型说明](docs/离线模型.md)
-- [DeepL 注册及使用教程](docs/DeepL注册及使用教程.txt)
-- [LibreTranslate 自建教程](docs/LibreTranslate自建教程.txt)
 - [术语表说明](docs/术语表说明.txt)
-- [第三方组件与模型许可](THIRD-PARTY-NOTICES.md)
+- [离线模型说明](docs/离线模型.md)
+- [DeepL 教程](docs/DeepL注册及使用教程.txt)
+- [LibreTranslate 教程](docs/LibreTranslate自建教程.txt)
 - [更新日志](CHANGELOG.md)
+- [第三方组件与模型许可](THIRD-PARTY-NOTICES.md)
 
 ## 已知限制
 
+- 需要 Windows 10 2004+ 或 Windows 11，x64。
 - 日/韩/俄 OCR 依赖 Windows 系统语言包。
-- 日文页面如果夹杂大量英文，自动判断可能需要手动选择源语言。
-- 英→日使用多语模型，个别语气词和问候语质量一般。
-- 离线模型约 1.5 GB，首次加载需要额外时间。
+- 竖排日文使用旋转识别，不是专用排版引擎。
 - 暂未提供安装器、代码签名和自动更新。
-- 暂不支持竖排日文专用排版引擎；高质量模式会尝试旋转识别。
-- 实时翻译会周期性截取固定区域，结果窗与选区重叠时可能截到窗口本身。
-
-## 常见问题
-
-### 启动后提示缺少 OCR 语言包
-
-打开 Windows 设置 → 时间和语言 → 语言和区域，安装对应语言的“光学字符识别”可选功能；或在框译设置中点击「安装识别语言包」。
-
-### 离线翻译不可用
-
-确认离线语言包已解压到 `bin\models`，或在设置 → 识别与模型中点击「下载离线语言包」。
-
-### SmartScreen 提示未知发布者
-
-当前是绿色压缩包，没有代码签名。确认文件来自本仓库 Release 后，可选择「更多信息 → 仍要运行」。
-
-### 在线翻译失败
-
-检查 API Key、网络和额度；框译会自动回退到离线模型。日志位于 `%LOCALAPPDATA%\KuangYi\logs\app.log`。
 
 ## 参与贡献
 
-欢迎提交 Issue 和 Pull Request。
-
-- 提交前请先搜索是否已有相同问题；
-- 代码修改请附带可复现步骤或测试；
-- 不要提交 `bin/`、`obj/`、`models/`、`*.zip` 或个人设置文件；
-- 模型和第三方组件遵循各自许可证，见 [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)。
+欢迎提交 Issue 和 Pull Request，提交前请先看 [CONTRIBUTING.md](CONTRIBUTING.md)。
 
 ## 许可证
 
-本项目代码采用 [MIT](LICENSE) 许可证。
-
-离线模型和第三方组件遵循各自许可证；再分发时请保留相应署名和许可说明。
+代码采用 [MIT](LICENSE)。模型和第三方组件遵循各自许可证，再分发时请保留 [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)。
 
 ## 致谢
 
 - [Helsinki-NLP / OPUS-MT](https://github.com/Helsinki-NLP)
 - [facebook/m2m100](https://github.com/facebookresearch/fairseq/tree/main/examples/m2m100)
-- [Xenova](https://huggingface.co/Xenova) 的 ONNX 模型转换
+- [Xenova](https://huggingface.co/Xenova)
 - [ONNX Runtime](https://github.com/microsoft/onnxruntime)
 - [SQLite](https://sqlite.org/)
