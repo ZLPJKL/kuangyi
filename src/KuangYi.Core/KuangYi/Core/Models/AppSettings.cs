@@ -50,8 +50,6 @@ public sealed class AppSettings
 
 	public bool DisclaimerAccepted { get; set; }
 
-	public bool PinResultWindow { get; set; }
-
 	public double ResultFontSize { get; set; } = 14.0;
 
 	public double ResultOpacity { get; set; } = 1.0;

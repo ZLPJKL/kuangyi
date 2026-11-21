@@ -508,13 +508,6 @@ public partial class App : System.Windows.Application
 		Tray.SetPaused(paused);
 	}
 
-	private void ShowFirstRun()
-	{
-		Settings.FirstRunCompleted = true;
-		SettingsStore.Save(Settings);
-		ShowStartupNotice("框译已启动", "按 " + Settings.Hotkey + " 框选屏幕区域，松开鼠标开始识别。\n\n程序驻留系统托盘；如果任务栏右下角没有图标，请点击 ^ 展开隐藏图标。\n\n离线模型已内置，断网可用；在线翻译默认关闭。");
-	}
-
 	public void ShowStartupNotice(string title, string body)
 	{
 		try

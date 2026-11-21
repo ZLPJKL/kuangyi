@@ -224,16 +224,6 @@ public sealed class GlossaryService
         });
     }
 
-    public void OpenInEditor()
-    {
-        EnsureDefaultFile();
-        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
-        {
-            FileName = _path,
-            UseShellExecute = true
-        });
-    }
-
     private List<Entry> LoadEntries()
     {
         lock (_gate)

@@ -59,9 +59,9 @@ try {
 
     $models = Join-Path $root "models"
     if (-not (Test-Path $models)) {
-        $sibling = Join-Path (Split-Path $root -Parent) "程序\models"
-        if (Test-Path $sibling) {
-            $models = $sibling
+        $binModels = Join-Path (Split-Path $root -Parent) "bin\models"
+        if (Test-Path $binModels) {
+            $models = $binModels
         }
     }
 
