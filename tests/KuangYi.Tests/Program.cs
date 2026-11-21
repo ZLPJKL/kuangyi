@@ -238,6 +238,12 @@ Check("英文换行合并带空格", TextFormatter.Reflow("Hello\nworld", "en") 
 Check("俄语换行合并带空格", TextFormatter.Reflow("Привет\nмир", "ru") == "Привет мир");
 Check("保留段落空行", TextFormatter.Reflow("第一段\n\n第二段", "zh") == "第一段\n\n第二段");
 Check("保留列表行", TextFormatter.Reflow("• 第一项\n• 第二项", "zh").Contains('\n'));
+Check("长文正文合并为连续段落",
+    TextFormatter.Reflow("标题\n\n第一段被拆成了\n两行。\n\n第二段也继续\n往下写。", "zh")
+    == "标题\n\n第一段被拆成了两行。第二段也继续往下写。");
+Check("长文标题和正文分开",
+    TextFormatter.Reflow("日本語\n\n題目：未来に向けた協力\n\n現代世界において、\n各国は特色を持つ。", "ja")
+    == "日本語\n\n題目：未来に向けた協力\n\n現代世界において、各国は特色を持つ。");
 
 Console.WriteLine();
 Console.WriteLine($"passed={passed} failed={failures.Count}");

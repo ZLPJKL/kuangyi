@@ -133,7 +133,7 @@ public partial class ModelDownloadWindow : Window
             AppLog.Warn("model release lookup failed: " + ex.Message);
         }
 
-        return "https://github.com/ZLPJKL/kuangyi/releases/latest/download/KuangYi-v1.2.2-models.zip";
+        return "https://github.com/ZLPJKL/kuangyi/releases/latest/download/KuangYi-v1.2.3-models.zip";
     }
 
     private void Cancel_Click(object sender, RoutedEventArgs e)
