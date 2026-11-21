@@ -11,6 +11,8 @@
 
 ![框译主界面](docs/images/main.png)
 
+![界面预览](docs/images/demo.gif)
+
 ## 下载
 
 从 [最新 Release](https://github.com/ZLPJKL/kuangyi/releases/latest) 下载：
