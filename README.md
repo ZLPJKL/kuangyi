@@ -1,8 +1,10 @@
 # 框译 Framed Translation
 
-[English README](README.en.md)
+**语言 / Language：** **简体中文** ｜ [English](README.en.md)
 
 > 按 `F2` 框选屏幕任意区域，本地 OCR 识别后直接翻译。离线可用，无广告、无账号、无付费墙。
+>
+> **English:** A lightweight Windows screen OCR and offline translation tool. Press `F2`, select a region, and translate instantly. No ads, accounts, or telemetry. [Read the full English README](README.en.md).
 
 ## 下载
 
