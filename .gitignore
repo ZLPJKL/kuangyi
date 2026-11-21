@@ -2,7 +2,7 @@ bin/
 obj/
 artifacts/
 publish/
-models/
+/models/
 *.user
 *.suo
 *.pdb
