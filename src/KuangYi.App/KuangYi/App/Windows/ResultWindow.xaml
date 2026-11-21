@@ -1,68 +1,177 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Window x:Class="KuangYi.App.Windows.ResultWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:windows="clr-namespace:KuangYi.App.Windows;assembly=KuangYi" Title="框译" Icon="/Assets/app.ico" Width="470" SizeToContent="Height" MaxHeight="700" WindowStyle="None" ResizeMode="NoResize" ShowInTaskbar="False" WindowStartupLocation="Manual" Topmost="False" AllowsTransparency="True" Background="#00FFFFFF" UseLayoutRounding="True" TextOptions.TextFormattingMode="Display">
-  <Border Name="CardBorder" Margin="14" Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource Border}" BorderThickness="1" CornerRadius="12" MouseLeftButtonDown="Header_MouseLeftButtonDown">
-    <UIElement.Effect>
-      <DropShadowEffect BlurRadius="20" ShadowDepth="2" Opacity="0.25" Color="Black" />
-    </UIElement.Effect>
-    <Grid>
-      <Grid.RowDefinitions>
-        <RowDefinition Height="Auto" />
-        <RowDefinition Height="Auto" />
-        <RowDefinition Height="Auto" />
-        <RowDefinition Height="Auto" />
-        <RowDefinition Height="Auto" />
-        <RowDefinition Height="Auto" />
-      </Grid.RowDefinitions>
-      <Grid Row="0" Margin="14,10,8,4" Background="#00FFFFFF" Cursor="SizeAll" ToolTip="按住这里拖动窗口" MouseLeftButtonDown="Header_MouseLeftButtonDown">
-        <Grid.ColumnDefinitions>
-          <ColumnDefinition Width="Auto" />
-          <ColumnDefinition Width="*" />
-          <ColumnDefinition Width="Auto" />
-        </Grid.ColumnDefinitions>
-        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-          <ComboBox Name="SourceLangCombo" Width="98" DisplayMemberPath="NameZh" SelectionChanged="SourceLanguage_SelectionChanged" />
-          <TextBlock Text="→" Margin="6,0" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondary}" />
-          <ComboBox Name="TargetLangCombo" Width="98" DisplayMemberPath="NameZh" SelectionChanged="TargetLanguage_SelectionChanged" />
-        </StackPanel>
-        <StackPanel Grid.Column="2" Orientation="Horizontal">
-          <Button Name="PinButton" Content="置顶" Style="{StaticResource GhostButton}" ToolTip="固定显示在其他窗口上方（默认关闭）" Click="Pin_Click" />
-          <Button Content="设置" Style="{StaticResource GhostButton}" Click="Settings_Click" />
-          <Button Content="—" Style="{StaticResource GhostButton}" ToolTip="最小化到托盘" Click="Minimize_Click" />
-          <Button Content="✕" Style="{StaticResource GhostButton}" Click="Close_Click" />
-        </StackPanel>
-      </Grid>
-      <TextBox Name="SourceBox" Grid.Row="1" Margin="16,2,16,0" MinHeight="54" MaxHeight="150" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Top" />
-      <Grid Row="2" Margin="16,8,16,6">
-        <Grid.ColumnDefinitions>
-          <ColumnDefinition Width="*" />
-          <ColumnDefinition Width="Auto" />
-        </Grid.ColumnDefinitions>
-        <TextBlock Name="SourceHint" Text="识别原文，可直接修改后重译" Style="{StaticResource CaptionText}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="0,0,8,0" />
-        <StackPanel Grid.Column="1" HorizontalAlignment="Right" Orientation="Horizontal">
-          <Button Name="LiveButton" Content="实时" Style="{StaticResource GhostButton}" ToolTip="每 2.5 秒重新识别同一区域（先框选一次）" Click="Live_Click" />
-          <Button Name="PinImageButton" Content="贴图" Style="{StaticResource GhostButton}" ToolTip="把当前截图固定到屏幕上" Click="PinImage_Click" />
-          <Button Content="复制原文" Style="{StaticResource GhostButton}" Click="CopySource_Click" />
-          <Button Name="TranslateButton" Content="重译" Style="{StaticResource GhostButton}" Click="Translate_Click" />
-        </StackPanel>
-      </Grid>
-      <Border Grid.Row="3" Height="1" Background="{DynamicResource Border}" Margin="16,0" />
-      <TextBox Name="OutputBox" Grid.Row="4" Margin="16,10,16,2" MinHeight="66" MaxHeight="280" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Background="#00FFFFFF" BorderThickness="0" FontSize="14" Padding="0" />
-      <Grid Row="5" Margin="16,6,16,12">
-        <Grid.ColumnDefinitions>
-          <ColumnDefinition Width="*" />
-          <ColumnDefinition Width="Auto" />
-        </Grid.ColumnDefinitions>
-        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-          <Border Name="ProviderBadge" Background="{DynamicResource BadgeBg}" CornerRadius="4" Padding="6,2" VerticalAlignment="Center" Visibility="Collapsed">
-            <TextBlock Name="ProviderText" FontSize="11" Foreground="{DynamicResource TextSecondary}" />
-          </Border>
-          <TextBlock Name="StatusText" Style="{StaticResource CaptionText}" Margin="8,0,0,0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
-        </StackPanel>
-        <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
-          <Button Name="EnableOnlineButton" Content="启用在线翻译" Style="{StaticResource LinkButton}" Visibility="Collapsed" Click="EnableOnline_Click" />
-          <Button Content="复制译文" Style="{StaticResource GhostButton}" Click="CopyTranslation_Click" />
-        </StackPanel>
-      </Grid>
-    </Grid>
-  </Border>
+<Window x:Class="KuangYi.App.Windows.ResultWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="框译"
+        Icon="/Assets/app.ico"
+        Width="560"
+        SizeToContent="Height"
+        MaxHeight="820"
+        WindowStyle="None"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        WindowStartupLocation="Manual"
+        Topmost="False"
+        AllowsTransparency="True"
+        Background="#00FFFFFF"
+        UseLayoutRounding="True"
+        TextOptions.TextFormattingMode="Display">
+    <Border Name="CardBorder"
+            Margin="14"
+            Background="{DynamicResource CardBg}"
+            BorderBrush="{DynamicResource Border}"
+            BorderThickness="1"
+            CornerRadius="12"
+            MouseLeftButtonDown="Header_MouseLeftButtonDown">
+        <UIElement.Effect>
+            <DropShadowEffect BlurRadius="20" ShadowDepth="2" Opacity="0.25" Color="Black" />
+        </UIElement.Effect>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0" Margin="14,10,8,4" Background="#00FFFFFF" Cursor="SizeAll" ToolTip="按住这里拖动窗口">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <ComboBox Name="SourceLangCombo" Width="104" DisplayMemberPath="NameZh" SelectionChanged="SourceLanguage_SelectionChanged" />
+                    <TextBlock Text="→" Margin="6,0" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondary}" />
+                    <ComboBox Name="TargetLangCombo" Width="104" DisplayMemberPath="NameZh" SelectionChanged="TargetLanguage_SelectionChanged" />
+                </StackPanel>
+                <StackPanel Grid.Column="2" Orientation="Horizontal">
+                    <Button Name="PinButton" Content="置顶" Style="{StaticResource GhostButton}" ToolTip="固定显示在其他窗口上方（默认关闭）" Click="Pin_Click" />
+                    <Button Content="设置" Style="{StaticResource GhostButton}" Click="Settings_Click" />
+                    <Button Content="—" Style="{StaticResource GhostButton}" ToolTip="最小化到托盘" Click="Minimize_Click" />
+                    <Button Content="✕" Style="{StaticResource GhostButton}" Click="Close_Click" />
+                </StackPanel>
+            </Grid>
+
+            <Grid Grid.Row="1" Margin="16,0,16,2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Name="SourceHint"
+                           Text="识别原文，可直接修改后重译"
+                           Style="{StaticResource CaptionText}"
+                           VerticalAlignment="Center"
+                           TextTrimming="CharacterEllipsis"
+                           Margin="0,0,8,0" />
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Button Name="LiveButton" Content="实时" Style="{StaticResource GhostButton}" ToolTip="每 2.5 秒重新识别同一区域（先框选一次）" Click="Live_Click" />
+                    <Button Name="PinImageButton" Content="贴图" Style="{StaticResource GhostButton}" ToolTip="把当前截图固定到屏幕上" Click="PinImage_Click" />
+                    <Button Name="TranslateButton" Content="重译" Style="{StaticResource GhostButton}" Click="Translate_Click" />
+                </StackPanel>
+            </Grid>
+
+            <Border Grid.Row="2"
+                    Margin="14,4,14,0"
+                    Background="{DynamicResource InputBg}"
+                    BorderBrush="{DynamicResource Border}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="10">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Grid>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Border Width="3" Height="14" Background="{DynamicResource Accent}" CornerRadius="2" Margin="0,0,7,0" />
+                            <TextBlock Text="原文" FontWeight="SemiBold" FontSize="12" Foreground="{DynamicResource TextPrimary}" />
+                            <TextBlock Text="· 可直接修改" Style="{StaticResource CaptionText}" Margin="6,0,0,0" VerticalAlignment="Center" />
+                        </StackPanel>
+                        <Button Content="复制原文" Style="{StaticResource GhostButton}" HorizontalAlignment="Right" Padding="6,1" Click="CopySource_Click" />
+                    </Grid>
+                    <TextBox Name="SourceBox"
+                             Grid.Row="1"
+                             Margin="0,6,0,0"
+                             MinHeight="86"
+                             MaxHeight="190"
+                             AcceptsReturn="True"
+                             AcceptsTab="False"
+                             TextWrapping="Wrap"
+                             VerticalScrollBarVisibility="Auto"
+                             VerticalContentAlignment="Top"
+                             BorderThickness="0"
+                             Background="Transparent"
+                             FontFamily="Microsoft YaHei UI"
+                             FontSize="14"
+                             Padding="0" />
+                </Grid>
+            </Border>
+
+            <Border Grid.Row="3"
+                    Margin="14,8,14,0"
+                    Background="{DynamicResource InputBg}"
+                    BorderBrush="{DynamicResource Border}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="10">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Grid>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Border Width="3" Height="14" Background="{DynamicResource Accent}" CornerRadius="2" Margin="0,0,7,0" />
+                            <TextBlock Text="译文" FontWeight="SemiBold" FontSize="12" Foreground="{DynamicResource TextPrimary}" />
+                            <Border Name="ProviderBadge"
+                                    Background="{DynamicResource BadgeBg}"
+                                    CornerRadius="4"
+                                    Padding="6,1"
+                                    Margin="8,0,0,0"
+                                    VerticalAlignment="Center"
+                                    Visibility="Collapsed">
+                                <TextBlock Name="ProviderText" FontSize="10.5" Foreground="{DynamicResource TextSecondary}" />
+                            </Border>
+                        </StackPanel>
+                        <Button Content="复制译文" Style="{StaticResource GhostButton}" HorizontalAlignment="Right" Padding="6,1" Click="CopyTranslation_Click" />
+                    </Grid>
+                    <TextBox Name="OutputBox"
+                             Grid.Row="1"
+                             Margin="0,6,0,0"
+                             MinHeight="100"
+                             MaxHeight="380"
+                             IsReadOnly="True"
+                             AcceptsReturn="True"
+                             TextWrapping="Wrap"
+                             VerticalScrollBarVisibility="Auto"
+                             VerticalContentAlignment="Top"
+                             BorderThickness="0"
+                             Background="Transparent"
+                             FontFamily="Microsoft YaHei UI"
+                             FontSize="15"
+                             Padding="0" />
+                </Grid>
+            </Border>
+
+            <Grid Grid.Row="4" Margin="16,8,16,12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Name="StatusText"
+                           Style="{StaticResource CaptionText}"
+                           VerticalAlignment="Center"
+                           TextTrimming="CharacterEllipsis" />
+                <Button Name="EnableOnlineButton"
+                        Grid.Column="1"
+                        Content="启用在线翻译"
+                        Style="{StaticResource LinkButton}"
+                        Visibility="Collapsed"
+                        Click="EnableOnline_Click" />
+            </Grid>
+        </Grid>
+    </Border>
 </Window>

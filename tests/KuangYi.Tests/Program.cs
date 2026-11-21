@@ -232,6 +232,13 @@ Check("缓存指纹稳定", TranslationCache.ComputeFingerprint("1.0.3", Path.Co
 Check("缓存指纹随应用版本变化", TranslationCache.ComputeFingerprint("1.0.3", Path.Combine(root, "no-models"))
     != TranslationCache.ComputeFingerprint("1.0.4", Path.Combine(root, "no-models")));
 
+Section("TextFormatter");
+Check("中文 OCR 换行合并", TextFormatter.Reflow("这是第一行\n这是第二行", "zh") == "这是第一行这是第二行");
+Check("英文换行合并带空格", TextFormatter.Reflow("Hello\nworld", "en") == "Hello world");
+Check("俄语换行合并带空格", TextFormatter.Reflow("Привет\nмир", "ru") == "Привет мир");
+Check("保留段落空行", TextFormatter.Reflow("第一段\n\n第二段", "zh") == "第一段\n\n第二段");
+Check("保留列表行", TextFormatter.Reflow("• 第一项\n• 第二项", "zh").Contains('\n'));
+
 Console.WriteLine();
 Console.WriteLine($"passed={passed} failed={failures.Count}");
 if (failures.Count > 0)

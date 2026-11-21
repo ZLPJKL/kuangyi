@@ -123,8 +123,8 @@ public partial class ResultWindow : Window, IComponentConnector
 					SetStatus("未识别到文字，请重新框选或扩大区域");
 					return;
 				}
-				SourceBox.Text = ocrOutput.Text;
 				string code = (_detectedCode = (string.Equals(configured, "auto", StringComparison.OrdinalIgnoreCase) ? MapOcrTag(ocrOutput.LanguageTag) : configured));
+				SourceBox.Text = TextFormatter.Reflow(ocrOutput.Text, code);
 				_updating = true;
 				SelectSource(code);
 				_updating = false;
@@ -161,8 +161,8 @@ public partial class ResultWindow : Window, IComponentConnector
 			Show();
 		}
 		Activate();
-		SourceBox.Text = text;
 		_detectedCode = LanguageDetector.Detect(text).Language.Code;
+		SourceBox.Text = TextFormatter.Reflow(text, _detectedCode);
 		_updating = true;
 		SelectSource(_detectedCode);
 		_updating = false;
@@ -195,8 +195,8 @@ public partial class ResultWindow : Window, IComponentConnector
 		PinButton.Content = "置顶";
 		PinButton.ToolTip = "固定显示在其他窗口上方（默认关闭）";
 		_updating = true;
-		SourceBox.Text = entry.SourceText;
-		OutputBox.Text = entry.TargetText;
+		SourceBox.Text = TextFormatter.Reflow(entry.SourceText, entry.SourceLang);
+		OutputBox.Text = TextFormatter.Reflow(entry.TargetText, entry.TargetLang);
 		SelectSource(entry.SourceLang);
 		SelectTarget(entry.TargetLang);
 		_updating = false;
@@ -292,7 +292,7 @@ public partial class ResultWindow : Window, IComponentConnector
 						return;
 					}
 
-					OutputBox.Text = cached.Text;
+					OutputBox.Text = TextFormatter.Reflow(cached.Text, target);
 					ProviderText.Text = $"{cached.ProviderName} · {Languages.Resolve(source).NameZh} → {Languages.Resolve(target).NameZh}";
 					ProviderBadge.Visibility = Visibility.Visible;
 					EnableOnlineButton.Visibility = Visibility.Collapsed;
@@ -312,7 +312,7 @@ public partial class ResultWindow : Window, IComponentConnector
 				TranslationResult result = translationOutcome.Result;
 				if ((object)result != null)
 				{
-					string translated = glossary.Restore(result.Text, prepared.Replacements);
+					string translated = TextFormatter.Reflow(glossary.Restore(result.Text, prepared.Replacements), target);
 					TranslationResult restored = new TranslationResult(translated, result.ProviderId, result.ProviderName, result.IsOffline);
 					OutputBox.Text = restored.Text;
 					ProviderText.Text = $"{restored.ProviderName} · {Languages.Resolve(source).NameZh} → {Languages.Resolve(target).NameZh}";
