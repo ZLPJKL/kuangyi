@@ -28,6 +28,8 @@ public sealed class TrayService : IDisposable
 
 	public event EventHandler? ResultRequested;
 
+	public event EventHandler? LiveRequested;
+
 	public event EventHandler? ToggleRequested;
 
 	public event EventHandler? HistoryRequested;
@@ -81,6 +83,11 @@ public sealed class TrayService : IDisposable
 		{
 			CaptureRequested?.Invoke(this, EventArgs.Empty);
 		};
+		ToolStripMenuItem liveItem = CreateItem("实时翻译", "\uE7C4");
+		liveItem.Click += (object? _, EventArgs _) =>
+		{
+			LiveRequested?.Invoke(this, EventArgs.Empty);
+		};
 		ToolStripMenuItem historyItem = CreateItem("历史记录", "\uE81C");
 		historyItem.Click += (object? _, EventArgs _) =>
 		{
@@ -107,6 +114,7 @@ public sealed class TrayService : IDisposable
 		_menu.Items.Add(showItem);
 		_menu.Items.Add(resultItem);
 		_menu.Items.Add(_captureItem);
+		_menu.Items.Add(liveItem);
 		_menu.Items.Add(historyItem);
 		_menu.Items.Add(settingsItem);
 		_menu.Items.Add(new ToolStripSeparator());

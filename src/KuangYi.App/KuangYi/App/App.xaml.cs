@@ -48,6 +48,8 @@ public partial class App : System.Windows.Application
 
 	public ResultWindow? ResultWindowInstance { get; private set; }
 
+	public LiveTranslationWindow? LiveWindowInstance { get; private set; }
+
 	public HistoryWindow? HistoryWindowInstance { get; private set; }
 
 	public SettingsWindow? SettingsWindowInstance { get; private set; }
@@ -57,6 +59,75 @@ public partial class App : System.Windows.Application
 	public async Task CaptureFromUiAsync()
 	{
 		await StartCaptureAsync();
+	}
+
+	public async Task StartLiveTranslationAsync()
+	{
+		if (_capturing || _exiting)
+		{
+			return;
+		}
+
+		_capturing = true;
+		bool restoreMain = MainWindowInstance?.IsVisible ?? false;
+		bool restoreResult = ResultWindowInstance?.IsVisible ?? false;
+		try
+		{
+			if (restoreMain)
+			{
+				MainWindowInstance.Hide();
+			}
+			if (restoreResult)
+			{
+				ResultWindowInstance.Hide();
+				await Task.Delay(140);
+			}
+			else if (restoreMain)
+			{
+				await Task.Delay(80);
+			}
+
+			CapturedFrame frame = Capture.CaptureVirtualScreen();
+			Int32Rect? selected = await new CaptureOverlayWindow(
+                frame,
+                "拖动选择实时翻译区域，松开开始 · Esc 取消").PickAsync();
+			if (!selected.HasValue)
+			{
+				if (restoreResult)
+				{
+					ResultWindowInstance?.Show();
+				}
+				if (restoreMain)
+				{
+					MainWindowInstance?.Show();
+				}
+				_capturing = false;
+				return;
+			}
+
+			Int32Rect screenRect = new Int32Rect(
+				frame.X + selected.Value.X,
+				frame.Y + selected.Value.Y,
+				selected.Value.Width,
+				selected.Value.Height);
+			LiveWindowInstance?.Close();
+			LiveWindowInstance = new LiveTranslationWindow(screenRect);
+			LiveWindowInstance.Closed += (object? _, EventArgs _) =>
+			{
+				LiveWindowInstance = null;
+			};
+			LiveWindowInstance.Show();
+			LiveWindowInstance.Activate();
+		}
+		catch (Exception ex)
+		{
+			AppLog.Error("live capture failed", ex);
+			Tray.ShowBalloon("框译", "实时翻译启动失败：" + ex.Message, ToolTipIcon.Error);
+		}
+		finally
+		{
+			_capturing = false;
+		}
 	}
 
 	public async Task CaptureFromClipboardAsync()
@@ -279,6 +350,10 @@ public partial class App : System.Windows.Application
 		Tray.ResultRequested += (object? _, EventArgs _) =>
 		{
 			ShowLastResult();
+		};
+		Tray.LiveRequested += async (object? _, EventArgs _) =>
+		{
+			await StartLiveTranslationAsync();
 		};
 		Tray.ToggleRequested += (object? _, EventArgs _) =>
 		{
@@ -542,6 +617,7 @@ public partial class App : System.Windows.Application
 			MainWindowInstance?.SavePlacement();
 			ResultWindowInstance?.SavePlacement();
 			ResultWindowInstance?.ForceClose();
+			LiveWindowInstance?.Close();
 			SettingsWindowInstance?.ForceClose();
 			HistoryWindowInstance?.ForceClose();
 			try

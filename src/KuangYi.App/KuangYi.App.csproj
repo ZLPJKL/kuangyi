@@ -33,6 +33,7 @@
     <Page Remove="KuangYi\App\Windows\FirstRunWindow.xaml" />
     <Page Remove="KuangYi\App\Windows\HistoryWindow.xaml" />
     <Page Remove="KuangYi\App\Windows\LiveRegionBorderWindow.xaml" />
+    <Page Remove="KuangYi\App\Windows\LiveTranslationWindow.xaml" />
     <Page Remove="KuangYi\App\Windows\GlossaryWindow.xaml" />
     <Page Remove="KuangYi\App\Windows\MainWindow.xaml" />
     <Page Remove="KuangYi\App\Windows\ModelDownloadWindow.xaml" />
@@ -49,6 +50,7 @@
     <Page Include="KuangYi\App\Windows\FirstRunWindow.xaml" Generator="MSBuild:Compile" SubType="Designer" LogicalName="windows/firstrunwindow.xaml" />
     <Page Include="KuangYi\App\Windows\HistoryWindow.xaml" Generator="MSBuild:Compile" SubType="Designer" LogicalName="windows/historywindow.xaml" />
     <Page Include="KuangYi\App\Windows\LiveRegionBorderWindow.xaml" Generator="MSBuild:Compile" SubType="Designer" LogicalName="windows/liveregionborderwindow.xaml" />
+    <Page Include="KuangYi\App\Windows\LiveTranslationWindow.xaml" Generator="MSBuild:Compile" SubType="Designer" LogicalName="windows/livetranslationwindow.xaml" />
     <Page Include="KuangYi\App\Windows\GlossaryWindow.xaml" Generator="MSBuild:Compile" SubType="Designer" LogicalName="windows/glossarywindow.xaml" />
     <Page Include="KuangYi\App\Windows\MainWindow.xaml" Generator="MSBuild:Compile" SubType="Designer" LogicalName="windows/mainwindow.xaml" />
     <Page Include="KuangYi\App\Windows\ModelDownloadWindow.xaml" Generator="MSBuild:Compile" SubType="Designer" LogicalName="windows/modeldownloadwindow.xaml" />

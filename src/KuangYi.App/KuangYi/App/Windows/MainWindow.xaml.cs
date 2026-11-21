@@ -95,6 +95,22 @@ public partial class MainWindow : Window, IComponentConnector
 		new BatchWindow().Show();
 	}
 
+	private async void Live_Click(object sender, RoutedEventArgs e)
+	{
+		Hide();
+		try
+		{
+			await App.Current.StartLiveTranslationAsync();
+		}
+		finally
+		{
+			if (App.Current.LiveWindowInstance == null)
+			{
+				Show();
+			}
+		}
+	}
+
 	private async Task RunImageActionAsync(Func<Task> action)
 	{
 		Hide();

@@ -66,7 +66,6 @@
                            TextTrimming="CharacterEllipsis"
                            Margin="0,0,8,0" />
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
-                    <Button Name="LiveButton" Content="实时" Style="{StaticResource GhostButton}" ToolTip="每 2.5 秒重新识别同一区域（先框选一次）" Click="Live_Click" />
                     <Button Name="PinImageButton" Content="贴图" Style="{StaticResource GhostButton}" ToolTip="把当前截图固定到屏幕上" Click="PinImage_Click" />
                     <Button Name="TranslateButton" Content="重译" Style="{StaticResource GhostButton}" Click="Translate_Click" />
                 </StackPanel>

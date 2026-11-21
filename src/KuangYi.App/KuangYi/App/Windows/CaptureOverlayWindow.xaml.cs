@@ -26,10 +26,11 @@ public partial class CaptureOverlayWindow : Window, IComponentConnector
 
 	private bool _committed;
 
-	public CaptureOverlayWindow(CapturedFrame frame)
+	public CaptureOverlayWindow(CapturedFrame frame, string? hint = null)
 	{
 		_frame = frame;
 		InitializeComponent();
+		HintText.Text = hint ?? "拖动选择区域，松开开始识别 · Esc 取消";
 		ScreenImage.Source = frame.Image;
 		Loaded += OnLoaded;
 		Closed += OnClosed;
