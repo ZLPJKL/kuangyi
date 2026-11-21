@@ -2,16 +2,7 @@
 
 [English README](README.en.md)
 
-[![Platform](https://img.shields.io/badge/platform-Windows%2010%20%7C%2011-0078D4?logo=windows)](https://www.microsoft.com/windows)
-[![.NET](https://img.shields.io/badge/.NET-10-512BD4?logo=dotnet)](https://dotnet.microsoft.com/)
-[![Version](https://img.shields.io/badge/version-1.2.0-blue)](CHANGELOG.md)
-[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
-
 > 按 `F2` 框选屏幕任意区域，本地 OCR 识别后直接翻译。离线可用，无广告、无账号、无付费墙。
-
-![框译主界面](docs/images/main.png)
-
-![界面预览](docs/images/demo.gif)
 
 ## 下载
 
@@ -22,16 +13,6 @@
 - `SHA256SUMS.txt` —— 校验值
 
 解压两个 ZIP 到同一个文件夹，双击 `框译.exe`。没有语言包也能启动，但只能使用在线翻译。
-
-## 界面
-
-| 识别结果 | 设置分类 |
-| --- | --- |
-| ![识别结果](docs/images/result.png) | ![设置](docs/images/settings.png) |
-
-![批量翻译](docs/images/batch.png)
-
-![首次启动向导](docs/images/first-run.png)
 
 ## 简介
 
