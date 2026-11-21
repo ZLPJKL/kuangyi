@@ -8,8 +8,8 @@
 
 从 [最新 Release](https://github.com/ZLPJKL/kuangyi/releases/latest) 下载：
 
-- `KuangYi-v1.2.0-win-x64.zip` —— 程序本体（约 89 MB）
-- `KuangYi-v1.2.0-models.zip` —— 离线语言包（约 1.2 GB）
+- `KuangYi-v1.2.1-win-x64.zip` —— 程序本体（约 89 MB）
+- `KuangYi-v1.2.1-models.zip` —— 离线语言包（约 1.2 GB）
 - `SHA256SUMS.txt` —— 校验值
 
 解压两个 ZIP 到同一个文件夹，双击 `框译.exe`。没有语言包也能启动，但只能使用在线翻译。

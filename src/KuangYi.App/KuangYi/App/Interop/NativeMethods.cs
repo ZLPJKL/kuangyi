@@ -69,6 +69,12 @@ internal static class NativeMethods
 	[return: MarshalAs(UnmanagedType.Bool)]
 	public static extern bool SetWindowPos(nint hWnd, nint hWndInsertAfter, int x, int y, int cx, int cy, uint flags);
 
+	[DllImport("user32.dll", EntryPoint = "GetWindowLongPtrW")]
+	public static extern nint GetWindowLongPtr(nint hWnd, int nIndex);
+
+	[DllImport("user32.dll", EntryPoint = "SetWindowLongPtrW")]
+	public static extern nint SetWindowLongPtr(nint hWnd, int nIndex, nint dwNewLong);
+
 	[DllImport("user32.dll")]
 	public static extern uint GetDpiForWindow(nint hWnd);
 

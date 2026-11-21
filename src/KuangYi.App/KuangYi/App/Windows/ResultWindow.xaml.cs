@@ -47,6 +47,8 @@ public partial class ResultWindow : Window, IComponentConnector
 
 	private bool _liveBusy;
 
+	private LiveRegionBorderWindow? _liveBorder;
+
 	public event EventHandler? ForceClosed;
 
 	public ResultWindow()
@@ -803,6 +805,16 @@ public partial class ResultWindow : Window, IComponentConnector
 		Topmost = true;
 		LiveButton.Content = "停止实时";
 		LiveButton.ToolTip = "正在监听固定屏幕区域，点击停止";
+		try
+		{
+			_liveBorder?.Close();
+			_liveBorder = new LiveRegionBorderWindow(_screenRect.Value);
+			_liveBorder.Show();
+		}
+		catch (Exception ex)
+		{
+			AppLog.Warn("live border failed: " + ex.Message);
+		}
 		SetStatus("实时识别已开启 · 每 2.5 秒刷新");
 	}
 
@@ -812,6 +824,18 @@ public partial class ResultWindow : Window, IComponentConnector
 		{
 			_liveTimer.Stop();
 			_liveTimer = null;
+		}
+
+		if (_liveBorder != null)
+		{
+			try
+			{
+				_liveBorder.Close();
+			}
+			catch
+			{
+			}
+			_liveBorder = null;
 		}
 
 		if (LiveButton != null)

@@ -24,8 +24,8 @@ A lightweight Windows 10/11 screen-capture translator. Press `F2`, drag a region
 
 Use the [latest release](https://github.com/ZLPJKL/kuangyi/releases/latest):
 
-- `KuangYi-v1.2.0-win-x64.zip` — application (~89 MB)
-- `KuangYi-v1.2.0-models.zip` — offline models (~1.2 GB)
+- `KuangYi-v1.2.1-win-x64.zip` — application (~89 MB)
+- `KuangYi-v1.2.1-models.zip` — offline models (~1.2 GB)
 - `SHA256SUMS.txt`
 
 Unzip both archives into the same folder and run `框译.exe`.
