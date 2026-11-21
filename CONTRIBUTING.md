@@ -16,12 +16,26 @@
 3. 修改核心逻辑时请同步补充 `tests/KuangYi.Tests`。
 4. 提交前运行：
 
-```powershell
+```pwsh
 dotnet build KuangYi.sln -c Release
 dotnet run --project tests/KuangYi.Tests -c Release
 ```
 
 5. 在 Pull Request 中说明改动、验证方式和已知限制。
+
+## 分支与 CI
+
+`main` 已启用分支保护：
+
+- 合并前需要 GitHub Actions 的 `build` 检查通过
+- 禁止 force push 和删除 `main`
+- 建议在 Fork 或功能分支提交 Pull Request，不要直接推送 `main`
+
+CI 会执行：
+
+```text
+restore → build → KuangYi.Tests
+```
 
 ## 模型与许可证
 
