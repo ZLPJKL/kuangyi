@@ -10,7 +10,7 @@
 
 从 [最新 Release](https://github.com/ZLPJKL/kuangyi/releases/latest) 下载：
 
-- `KuangYi-v1.2.4-win-x64.zip` —— 程序本体（约 89 MB）
+- `KuangYi-v1.2.5-win-x64.zip` —— 程序本体（约 89 MB）
 - `KuangYi-v1.2.3-models.zip` —— 离线语言包（约 1.2 GB，模型未变化，继续使用 v1.2.3 附件）
 - `SHA256SUMS.txt` —— 校验值
 

@@ -26,7 +26,7 @@ A lightweight Windows 10/11 screen-capture translator. Press `F2`, drag a region
 
 Use the [latest release](https://github.com/ZLPJKL/kuangyi/releases/latest):
 
-- `KuangYi-v1.2.4-win-x64.zip` — application (~89 MB)
+- `KuangYi-v1.2.5-win-x64.zip` — application (~89 MB)
 - `KuangYi-v1.2.3-models.zip` — offline models (~1.2 GB; unchanged, reuse the v1.2.3 asset)
 - `SHA256SUMS.txt`
 
@@ -36,7 +36,7 @@ Unzip both archives into the same folder and run `框译.exe`.
 
 ## Quick start
 
-1. Unzip `KuangYi-v1.2.4-win-x64.zip` into a folder.
+1. Unzip `KuangYi-v1.2.5-win-x64.zip` into a folder.
 2. Unzip `KuangYi-v1.2.3-models.zip` into the same folder.
 3. Run `框译.exe`.
 4. Press `F2`, drag over any text, and wait for the result.

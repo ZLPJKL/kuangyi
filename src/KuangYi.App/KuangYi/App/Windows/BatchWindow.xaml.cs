@@ -120,27 +120,46 @@ public partial class BatchWindow : Window
         var document = await global::Windows.Data.Pdf.PdfDocument.LoadFromFileAsync(file);
         var source = new StringBuilder();
         var translated = new StringBuilder();
+        bool hadFailure = false;
         for (uint pageIndex = 0; pageIndex < document.PageCount; pageIndex++)
         {
             ct.ThrowIfCancellationRequested();
-            using var page = document.GetPage(pageIndex);
-            using var stream = new global::Windows.Storage.Streams.InMemoryRandomAccessStream();
-            await page.RenderToStreamAsync(stream);
-            stream.Seek(0);
-            var image = new BitmapImage();
-            image.BeginInit();
-            image.CacheOption = BitmapCacheOption.OnLoad;
-            image.StreamSource = stream.AsStreamForRead();
-            image.EndInit();
-            image.Freeze();
-            var result = await RecognizeAndTranslateAsync(image, pipeline, target, ct);
-            source.AppendLine(result.Source);
-            translated.AppendLine(result.Translation);
-            row.Status = $"PDF 第 {pageIndex + 1}/{document.PageCount} 页";
+            try
+            {
+                using var page = document.GetPage(pageIndex);
+                using var stream = new global::Windows.Storage.Streams.InMemoryRandomAccessStream();
+                await page.RenderToStreamAsync(stream);
+                stream.Seek(0);
+                var image = new BitmapImage();
+                image.BeginInit();
+                image.CacheOption = BitmapCacheOption.OnLoad;
+                image.StreamSource = stream.AsStreamForRead();
+                image.EndInit();
+                image.Freeze();
+                var result = await RecognizeAndTranslateAsync(image, pipeline, target, ct);
+                if (string.IsNullOrWhiteSpace(result.Source))
+                {
+                    row.Status = $"PDF 第 {pageIndex + 1}/{document.PageCount} 页 · 空白页，已跳过";
+                    continue;
+                }
+
+                source.AppendLine(result.Source);
+                translated.AppendLine(result.Translation);
+                row.Status = $"PDF 第 {pageIndex + 1}/{document.PageCount} 页";
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                hadFailure = true;
+                row.Status = $"PDF 第 {pageIndex + 1} 页失败：" + ex.Message;
+            }
         }
         row.SourceText = source.ToString().Trim();
         row.Translation = translated.ToString().Trim();
-        row.Status = "完成";
+        row.Status = hadFailure ? "完成（部分页面失败）" : "完成";
     }
 
     private async Task TranslateImageAsync(BatchRow row, BitmapSource image, TranslationPipeline pipeline, string target, CancellationToken ct)
@@ -148,7 +167,7 @@ public partial class BatchWindow : Window
         var result = await RecognizeAndTranslateAsync(image, pipeline, target, ct);
         row.SourceText = result.Source;
         row.Translation = result.Translation;
-        row.Status = "完成";
+        row.Status = string.IsNullOrWhiteSpace(result.Source) ? "未识别到文字" : "完成";
     }
 
     private async Task<(string Source, string Translation)> RecognizeAndTranslateAsync(
@@ -157,17 +176,66 @@ public partial class BatchWindow : Window
         string target,
         CancellationToken ct)
     {
-        var configured = App.Current.Settings.SourceLanguage;
+        var settings = App.Current.Settings;
+        var configured = settings.SourceLanguage;
         var ocr = await App.Current.Ocr.RecognizeAsync(
             image,
             string.Equals(configured, "auto", StringComparison.OrdinalIgnoreCase) ? null : configured,
-            App.Current.Settings.OcrQuality,
+            settings.OcrQuality,
             ct);
+        if (string.IsNullOrWhiteSpace(ocr.Text))
+        {
+            return (string.Empty, string.Empty);
+        }
+
         string source = string.Equals(configured, "auto", StringComparison.OrdinalIgnoreCase)
             ? LanguageDetector.Detect(ocr.Text).Language.Code
             : configured;
-        var outcome = await pipeline.TranslateAsync(new TranslationRequest(ocr.Text, source, target), ct);
-        return (ocr.Text, outcome.Success && outcome.Result != null ? outcome.Result.Text : "翻译失败：" + outcome.SummaryError);
+        string formattedSource = TextFormatter.Reflow(ocr.Text, source);
+        if (string.Equals(source, target, StringComparison.OrdinalIgnoreCase))
+        {
+            return (formattedSource, "源语言与目标语言相同");
+        }
+
+        var glossary = App.Current.Translations.Glossary;
+        var prepared = glossary.Prepare(ocr.Text, source, target);
+        string mode = settings.LocalOnly ? "offline" : (settings.OnlineEnabled ? settings.OnlineProvider : "offline");
+        string cacheKey = TranslationCache.CreateKey(
+            ocr.Text.Trim(),
+            source,
+            target,
+            mode,
+            glossary.Version,
+            App.Current.Translations.CacheFingerprint);
+        if (settings.CacheEnabled)
+        {
+            var cached = await App.Current.Translations.Cache.TryGetAsync(cacheKey, ct);
+            if (cached != null)
+            {
+                return (formattedSource, TextFormatter.Reflow(cached.Text, target));
+            }
+        }
+
+        var outcome = await pipeline.TranslateAsync(new TranslationRequest(prepared.Text, source, target), ct);
+        if (!outcome.Success || outcome.Result == null)
+        {
+            return (formattedSource, "翻译失败：" + (outcome.SummaryError ?? "没有可用翻译源"));
+        }
+
+        string translated = TextFormatter.Reflow(
+            glossary.Restore(outcome.Result.Text, prepared.Replacements),
+            target);
+        if (settings.CacheEnabled
+            && (string.Equals(mode, "offline", StringComparison.OrdinalIgnoreCase) || !outcome.Result.IsOffline))
+        {
+            await App.Current.Translations.Cache.StoreAsync(
+                cacheKey,
+                ocr.Text.Trim(),
+                new TranslationResult(translated, outcome.Result.ProviderId, outcome.Result.ProviderName, outcome.Result.IsOffline),
+                ct);
+        }
+
+        return (formattedSource, translated);
     }
 
     private static BitmapSource LoadImage(string path)

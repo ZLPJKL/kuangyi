@@ -76,6 +76,11 @@ internal static class NativeMethods
 	public static extern nint SetWindowLongPtr(nint hWnd, int nIndex, nint dwNewLong);
 
 	[DllImport("user32.dll")]
+	public static extern bool SetWindowDisplayAffinity(nint hWnd, uint dwAffinity);
+
+	public const uint WdaExcludeFromCapture = 0x00000011;
+
+	[DllImport("user32.dll")]
 	public static extern uint GetDpiForWindow(nint hWnd);
 
 	[DllImport("user32.dll")]

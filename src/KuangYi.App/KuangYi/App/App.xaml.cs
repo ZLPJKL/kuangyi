@@ -93,15 +93,6 @@ public partial class App : System.Windows.Application
                 "拖动选择实时翻译区域，松开开始 · Esc 取消").PickAsync();
 			if (!selected.HasValue)
 			{
-				if (restoreResult)
-				{
-					ResultWindowInstance?.Show();
-				}
-				if (restoreMain)
-				{
-					MainWindowInstance?.Show();
-				}
-				_capturing = false;
 				return;
 			}
 
@@ -127,6 +118,17 @@ public partial class App : System.Windows.Application
 		finally
 		{
 			_capturing = false;
+			if (LiveWindowInstance == null)
+			{
+				if (restoreResult)
+				{
+					ResultWindowInstance?.Show();
+				}
+				if (restoreMain)
+				{
+					MainWindowInstance?.Show();
+				}
+			}
 		}
 	}
 

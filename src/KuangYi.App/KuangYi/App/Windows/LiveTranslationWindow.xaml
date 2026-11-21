@@ -47,7 +47,12 @@
             </Grid>
 
             <Grid Grid.Row="1" Margin="16,4,16,2">
-                <TextBlock Name="RegionText" Style="{StaticResource CaptionText}" VerticalAlignment="Center" />
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <ComboBox Name="SourceLangCombo" Width="88" DisplayMemberPath="NameZh" SelectionChanged="Language_Changed" />
+                    <TextBlock Text="→" Margin="5,0" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondary}" />
+                    <ComboBox Name="TargetLangCombo" Width="88" DisplayMemberPath="NameZh" SelectionChanged="Language_Changed" />
+                    <TextBlock Name="RegionText" Style="{StaticResource CaptionText}" Margin="10,0,0,0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                </StackPanel>
                 <Button Content="复制译文" Style="{StaticResource GhostButton}" HorizontalAlignment="Right" Padding="6,1" Click="Copy_Click" />
             </Grid>
 

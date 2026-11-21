@@ -111,20 +111,24 @@ public partial class ModelDownloadWindow : Window
         http.DefaultRequestHeaders.UserAgent.ParseAdd("KuangYi-ModelDownloader");
         try
         {
-            string json = await http.GetStringAsync("https://api.github.com/repos/ZLPJKL/kuangyi/releases/latest", ct);
-            using var document = JsonDocument.Parse(json);
-            if (document.RootElement.TryGetProperty("assets", out var assets))
+            string latest = await http.GetStringAsync("https://api.github.com/repos/ZLPJKL/kuangyi/releases/latest", ct);
+            using (var document = JsonDocument.Parse(latest))
             {
-                foreach (var asset in assets.EnumerateArray())
+                string? url = FindModelAsset(document.RootElement);
+                if (!string.IsNullOrEmpty(url))
                 {
-                    string name = asset.GetProperty("name").GetString() ?? string.Empty;
-                    if (name.EndsWith(".zip", StringComparison.OrdinalIgnoreCase)
-                        && (name.Contains("models", StringComparison.OrdinalIgnoreCase)
-                            || name.Contains("语言包", StringComparison.OrdinalIgnoreCase)))
-                    {
-                        return asset.GetProperty("browser_download_url").GetString()
-                               ?? throw new InvalidOperationException("语言包下载地址为空");
-                    }
+                    return url;
+                }
+            }
+
+            string releases = await http.GetStringAsync("https://api.github.com/repos/ZLPJKL/kuangyi/releases?per_page=10", ct);
+            using var list = JsonDocument.Parse(releases);
+            foreach (var release in list.RootElement.EnumerateArray())
+            {
+                string? url = FindModelAsset(release);
+                if (!string.IsNullOrEmpty(url))
+                {
+                    return url;
                 }
             }
         }
@@ -134,6 +138,27 @@ public partial class ModelDownloadWindow : Window
         }
 
         return "https://github.com/ZLPJKL/kuangyi/releases/download/v1.2.3/KuangYi-v1.2.3-models.zip";
+    }
+
+    private static string? FindModelAsset(JsonElement release)
+    {
+        if (!release.TryGetProperty("assets", out var assets))
+        {
+            return null;
+        }
+
+        foreach (var asset in assets.EnumerateArray())
+        {
+            string name = asset.GetProperty("name").GetString() ?? string.Empty;
+            if (name.EndsWith(".zip", StringComparison.OrdinalIgnoreCase)
+                && (name.Contains("models", StringComparison.OrdinalIgnoreCase)
+                    || name.Contains("语言包", StringComparison.OrdinalIgnoreCase)))
+            {
+                return asset.GetProperty("browser_download_url").GetString();
+            }
+        }
+
+        return null;
     }
 
     private void Cancel_Click(object sender, RoutedEventArgs e)

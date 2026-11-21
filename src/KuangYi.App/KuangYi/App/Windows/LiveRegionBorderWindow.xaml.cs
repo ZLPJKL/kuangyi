@@ -31,6 +31,7 @@ public partial class LiveRegionBorderWindow : Window
             nint style = NativeMethods.GetWindowLongPtr(handle, GwlExStyle);
             nint newStyle = (nint)((long)style | WsExTransparent | WsExToolWindow | WsExNoActivate);
             NativeMethods.SetWindowLongPtr(handle, GwlExStyle, newStyle);
+            NativeMethods.SetWindowDisplayAffinity(handle, NativeMethods.WdaExcludeFromCapture);
         }
         catch (Exception ex)
         {

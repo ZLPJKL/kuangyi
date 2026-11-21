@@ -21,12 +21,12 @@
       </Grid>
       <TextBlock Grid.Row="1" Text="按 F2 框选屏幕区域，或把图片拖进来，也可以点击下方按钮。" Foreground="{DynamicResource TextSecondary}" TextWrapping="Wrap" />
       <Button Grid.Row="2" Content="框选翻译 (F2)" Style="{StaticResource PrimaryButton}" Padding="18,10" Margin="0,16,0,0" Click="Capture_Click" />
-      <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,10,0,0">
-        <Button Content="剪贴板识别" Style="{StaticResource GhostButton}" ToolTip="识别剪贴板里的图片或文本（Ctrl+V）" Click="Clipboard_Click" />
-        <Button Content="图片识别" Style="{StaticResource GhostButton}" ToolTip="选择一张图片文件进行识别" Click="ImageFile_Click" />
-        <Button Content="实时翻译" Style="{StaticResource GhostButton}" ToolTip="框选一块区域并持续刷新译文" Click="Live_Click" />
-        <Button Content="批量 / PDF" Style="{StaticResource GhostButton}" ToolTip="批量翻译多张图片或 PDF" Click="Batch_Click" />
-      </StackPanel>
+      <WrapPanel Grid.Row="3" Margin="0,10,0,0">
+        <Button Content="剪贴板识别" Style="{StaticResource GhostButton}" ToolTip="识别剪贴板里的图片或文本（Ctrl+V）" Margin="0,0,6,4" Click="Clipboard_Click" />
+        <Button Content="图片识别" Style="{StaticResource GhostButton}" ToolTip="选择一张图片文件进行识别" Margin="0,0,6,4" Click="ImageFile_Click" />
+        <Button Content="实时翻译" Style="{StaticResource GhostButton}" ToolTip="框选一块区域并持续刷新译文" Margin="0,0,6,4" Click="Live_Click" />
+        <Button Content="批量 / PDF" Style="{StaticResource GhostButton}" ToolTip="批量翻译多张图片或 PDF" Margin="0,0,6,4" Click="Batch_Click" />
+      </WrapPanel>
       <Grid Row="4" Margin="0,10,0,0">
         <StackPanel Orientation="Horizontal">
           <Button Content="设置" Style="{StaticResource GhostButton}" Click="Settings_Click" />
