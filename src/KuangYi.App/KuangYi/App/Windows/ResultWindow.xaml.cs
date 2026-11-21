@@ -15,6 +15,7 @@ using System.Windows.Interop;
 using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Threading;
 using KuangYi.App.Interop;
 using KuangYi.App.Services;
 using KuangYi.Core.Models;
@@ -40,11 +41,19 @@ public partial class ResultWindow : Window, IComponentConnector
 
 	private string _detectedCode = string.Empty;
 
+	private Int32Rect? _screenRect;
+
+	private DispatcherTimer? _liveTimer;
+
+	private bool _liveBusy;
+
 	public event EventHandler? ForceClosed;
 
 	public ResultWindow()
 	{
 		InitializeComponent();
+		OutputBox.FontSize = Math.Clamp(App.Current.Settings.ResultFontSize, 11.0, 24.0);
+		Opacity = Math.Clamp(App.Current.Settings.ResultOpacity, 0.65, 1.0);
 		_initializing = true;
 		SourceLangCombo.ItemsSource = Languages.SourceChoices;
 		TargetLangCombo.ItemsSource = Languages.All;
@@ -83,6 +92,8 @@ public partial class ResultWindow : Window, IComponentConnector
 	public async Task ShowCaptureAsync(BitmapSource crop, Int32Rect screenRect)
 	{
 		_crop = crop;
+		_screenRect = screenRect;
+		StopLive();
 		_suppressHistory = false;
 		ResetForCapture();
 		if (!IsVisible)
@@ -136,10 +147,47 @@ public partial class ResultWindow : Window, IComponentConnector
 		}
 	}
 
+	public async Task ShowTextAsync(string text)
+	{
+		_crop = null;
+		_screenRect = null;
+		StopLive();
+		_suppressHistory = false;
+		ResetForCapture();
+		if (!IsVisible)
+		{
+			Show();
+		}
+		Activate();
+		SourceBox.Text = text;
+		_detectedCode = LanguageDetector.Detect(text).Language.Code;
+		_updating = true;
+		SelectSource(_detectedCode);
+		_updating = false;
+		SourceHint.Text = "来自剪贴板的文本，可直接修改后重译";
+		CancellationTokenSource cts = ReplaceWork();
+		int version = _translateVersion;
+		SetStatus("正在翻译…");
+		try
+		{
+			await TranslateCurrentAsync(cts.Token, version, saveHistory: true);
+		}
+		catch (OperationCanceledException)
+		{
+		}
+		catch (Exception ex)
+		{
+			AppLog.Error("clipboard text translate failed", ex);
+			SetStatus("翻译失败：" + ex.Message);
+		}
+	}
+
 	public void ShowHistoryEntry(HistoryEntry entry)
 	{
 		_suppressHistory = true;
 		_crop = null;
+		_screenRect = null;
+		StopLive();
 		ReplaceWork();
 		Topmost = false;
 		PinButton.Content = "置顶";
@@ -165,6 +213,7 @@ public partial class ResultWindow : Window, IComponentConnector
 
 	public void ForceClose()
 	{
+		StopLive();
 		_forceClose = true;
 		_workCts?.Cancel();
 		Close();
@@ -701,11 +750,124 @@ public partial class ResultWindow : Window, IComponentConnector
 		}
 	}
 
+	private void PinImage_Click(object sender, RoutedEventArgs e)
+	{
+		if (_crop == null)
+		{
+			SetStatus("当前没有可贴图的截图");
+			return;
+		}
+
+		try
+		{
+			new PinImageWindow(_crop).Show();
+		}
+		catch (Exception ex)
+		{
+			AppLog.Warn("pin image failed: " + ex.Message);
+			SetStatus("贴图失败：" + ex.Message);
+		}
+	}
+
 	private void Pin_Click(object sender, RoutedEventArgs e)
 	{
 		Topmost = !Topmost;
 		PinButton.Content = (Topmost ? "取消置顶" : "置顶");
 		PinButton.ToolTip = (Topmost ? "已固定在最上层，点击取消" : "固定显示在其他窗口上方（默认关闭）");
+	}
+
+	private void Live_Click(object sender, RoutedEventArgs e)
+	{
+		if (_liveTimer != null)
+		{
+			StopLive();
+			SetStatus("已停止实时识别");
+			return;
+		}
+
+		if (!_screenRect.HasValue)
+		{
+			SetStatus("实时识别需要先框选一次屏幕区域");
+			return;
+		}
+
+		_liveTimer = new DispatcherTimer
+		{
+			Interval = TimeSpan.FromSeconds(2.5)
+		};
+		_liveTimer.Tick += async (object? _, EventArgs _) =>
+		{
+			await RefreshLiveAsync();
+		};
+		_liveTimer.Start();
+		Topmost = true;
+		LiveButton.Content = "停止实时";
+		LiveButton.ToolTip = "正在监听固定屏幕区域，点击停止";
+		SetStatus("实时识别已开启 · 每 2.5 秒刷新");
+	}
+
+	private void StopLive()
+	{
+		if (_liveTimer != null)
+		{
+			_liveTimer.Stop();
+			_liveTimer = null;
+		}
+
+		if (LiveButton != null)
+		{
+			LiveButton.Content = "实时";
+			LiveButton.ToolTip = "每 2.5 秒重新识别同一区域（先框选一次）";
+		}
+	}
+
+	private async Task RefreshLiveAsync()
+	{
+		if (_liveBusy || _liveTimer == null || !_screenRect.HasValue)
+		{
+			return;
+		}
+
+		_liveBusy = true;
+		try
+		{
+			BitmapSource image = App.Current.Capture.CaptureRegion(_screenRect.Value);
+			OcrOutput output = await App.Current.Ocr.RecognizeAsync(image, null, App.Current.Settings.OcrQuality, CancellationToken.None);
+			if (string.IsNullOrWhiteSpace(output.Text))
+			{
+				SetStatus("实时 · 未识别到文字");
+				return;
+			}
+
+			if (!string.Equals(SourceBox.Text, output.Text, StringComparison.Ordinal))
+			{
+				SourceBox.Text = output.Text;
+				_detectedCode = MapOcrTag(output.LanguageTag);
+				_updating = true;
+				SelectSource(_detectedCode);
+				_updating = false;
+				SourceHint.Text = $"实时 · {DateTime.Now:HH:mm:ss} · {output.Lines.Count} 行";
+				CancellationTokenSource cts = ReplaceWork();
+				int version = _translateVersion;
+				await TranslateCurrentAsync(cts.Token, version, saveHistory: false);
+			}
+			else
+			{
+				SetStatus($"实时 · {DateTime.Now:HH:mm:ss} · 内容未变化");
+			}
+		}
+		catch (OperationCanceledException)
+		{
+		}
+		catch (Exception ex)
+		{
+			AppLog.Warn("live refresh failed: " + ex.Message);
+			SetStatus("实时识别失败：" + ex.Message);
+		}
+		finally
+		{
+			_liveBusy = false;
+		}
 	}
 
 	private void Settings_Click(object sender, RoutedEventArgs e)
@@ -740,6 +902,7 @@ public partial class ResultWindow : Window, IComponentConnector
 	private void OnClosing(object? sender, CancelEventArgs e)
 	{
 		SavePlacement();
+		StopLive();
 		if (!_forceClose)
 		{
 			e.Cancel = true;

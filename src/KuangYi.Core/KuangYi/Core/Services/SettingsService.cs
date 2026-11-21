@@ -100,6 +100,8 @@ public sealed class SettingsService
 		}
 		s.OnlineProvider = onlineProvider;
 		s.CacheMaxEntries = Math.Clamp(s.CacheMaxEntries, 100, 5000);
+		s.ResultFontSize = Math.Clamp(s.ResultFontSize, 11.0, 24.0);
+		s.ResultOpacity = Math.Clamp(s.ResultOpacity <= 0 ? 1.0 : s.ResultOpacity, 0.65, 1.0);
 		s.OcrQuality = s.OcrQuality?.Trim().ToLowerInvariant() switch
 		{
 			"fast" => "Fast",

@@ -127,6 +127,15 @@ public sealed class OcrService
 				}
 			}
 		}
+		if (high)
+		{
+			list.Add(Binarize(inverted ?? bitmapSource));
+			if (NeedsVerticalVariant(bitmapSource, preferred))
+			{
+				list.Add(Rotate(bitmapSource, 90));
+				list.Add(Rotate(bitmapSource, 270));
+			}
+		}
 		List<(OcrEngine Engine, string Tag)> engines = CreateEngines(preferred);
 		OcrOutput best = null;
 		double bestScore = double.NegativeInfinity;
@@ -310,6 +319,125 @@ public sealed class OcrService
 		BitmapSource bitmapSource = BitmapSource.Create(formatConvertedBitmap.PixelWidth, formatConvertedBitmap.PixelHeight, formatConvertedBitmap.DpiX, formatConvertedBitmap.DpiY, PixelFormats.Bgra32, null, array, num);
 		bitmapSource.Freeze();
 		return bitmapSource;
+	}
+
+	private static BitmapSource CropBlankBorder(BitmapSource image)
+	{
+		try
+		{
+			if (image.PixelWidth < 40 || image.PixelHeight < 40)
+			{
+				return image;
+			}
+
+			var converted = new FormatConvertedBitmap(image, PixelFormats.Bgra32, null, 0.0);
+			int stride = converted.PixelWidth * 4;
+			byte[] pixels = new byte[stride * converted.PixelHeight];
+			converted.CopyPixels(pixels, stride, 0);
+			int width = converted.PixelWidth;
+			int height = converted.PixelHeight;
+
+			int[] cornerLuminance =
+			{
+				Luminance(pixels, 0),
+				Luminance(pixels, (width - 1) * 4),
+				Luminance(pixels, (height - 1) * stride),
+				Luminance(pixels, (height - 1) * stride + (width - 1) * 4)
+			};
+			int background = cornerLuminance.OrderBy(v => v).ElementAt(2);
+			int minX = width;
+			int minY = height;
+			int maxX = -1;
+			int maxY = -1;
+			for (int y = 0; y < height; y += 2)
+			{
+				int row = y * stride;
+				for (int x = 0; x < width; x += 2)
+				{
+					if (Math.Abs(Luminance(pixels, row + x * 4) - background) <= 20)
+					{
+						continue;
+					}
+
+					minX = Math.Min(minX, x);
+					maxX = Math.Max(maxX, x);
+					minY = Math.Min(minY, y);
+					maxY = Math.Max(maxY, y);
+				}
+			}
+
+			if (maxX < minX || maxY < minY)
+			{
+				return image;
+			}
+
+			minX = Math.Max(0, minX - 4);
+			minY = Math.Max(0, minY - 4);
+			maxX = Math.Min(width - 1, maxX + 4);
+			maxY = Math.Min(height - 1, maxY + 4);
+			if (minX == 0 && minY == 0 && maxX == width - 1 && maxY == height - 1)
+			{
+				return image;
+			}
+
+			var crop = new CroppedBitmap(converted, new System.Windows.Int32Rect(minX, minY, maxX - minX + 1, maxY - minY + 1));
+			crop.Freeze();
+			return crop;
+		}
+		catch
+		{
+			return image;
+		}
+	}
+
+	private static int Luminance(byte[] pixels, int offset)
+	{
+		if (offset < 0 || offset + 2 >= pixels.Length)
+		{
+			return 255;
+		}
+
+		return (pixels[offset + 2] * 299 + pixels[offset + 1] * 587 + pixels[offset] * 114) / 1000;
+	}
+
+	private static BitmapSource Binarize(BitmapSource image)
+	{
+		try
+		{
+			var converted = new FormatConvertedBitmap(image, PixelFormats.Bgra32, null, 0.0);
+			int stride = converted.PixelWidth * 4;
+			byte[] pixels = new byte[stride * converted.PixelHeight];
+			converted.CopyPixels(pixels, stride, 0);
+			for (int i = 0; i + 3 < pixels.Length; i += 4)
+			{
+				int value = Luminance(pixels, i) >= 150 ? 255 : 0;
+				pixels[i] = (byte)value;
+				pixels[i + 1] = (byte)value;
+				pixels[i + 2] = (byte)value;
+			}
+
+			BitmapSource result = BitmapSource.Create(converted.PixelWidth, converted.PixelHeight, converted.DpiX, converted.DpiY, PixelFormats.Bgra32, null, pixels, stride);
+			result.Freeze();
+			return result;
+		}
+		catch
+		{
+			return image;
+		}
+	}
+
+	private static bool NeedsVerticalVariant(BitmapSource image, string? preferred)
+	{
+		bool japanese = string.Equals(preferred, "ja", StringComparison.OrdinalIgnoreCase);
+		bool tall = image.PixelHeight > image.PixelWidth * 1.6;
+		return japanese || tall;
+	}
+
+	private static BitmapSource Rotate(BitmapSource image, double angle)
+	{
+		var rotated = new TransformedBitmap(image, new RotateTransform(angle));
+		rotated.Freeze();
+		return rotated;
 	}
 
 	private static List<(OcrEngine Engine, string Tag)> CreateEngines(string? preferredLanguageCode)
@@ -630,6 +758,7 @@ public sealed class OcrService
 
 	private static BitmapSource Prepare(BitmapSource image, bool highQuality)
 	{
+		image = CropBlankBorder(image);
 		uint maxImageDimension = OcrEngine.MaxImageDimension;
 		double num = 1.0;
 		if (image.PixelWidth < 450 || image.PixelHeight < 280)

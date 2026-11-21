@@ -112,6 +112,10 @@
                                 <StackPanel>
                                     <TextBlock Text="外观" Style="{StaticResource CardTitle}" />
                                     <ComboBox Name="ThemeCombo" Width="200" HorizontalAlignment="Left" />
+                                    <TextBlock Text="结果窗字号" Style="{StaticResource CaptionText}" Margin="0,10,0,4" />
+                                    <Slider Name="ResultFontSlider" Minimum="11" Maximum="24" TickFrequency="1" IsSnapToTickEnabled="True" Width="220" HorizontalAlignment="Left" />
+                                    <TextBlock Text="结果窗不透明度" Style="{StaticResource CaptionText}" Margin="0,8,0,4" />
+                                    <Slider Name="ResultOpacitySlider" Minimum="0.65" Maximum="1" TickFrequency="0.05" IsSnapToTickEnabled="True" Width="220" HorizontalAlignment="Left" />
                                 </StackPanel>
                             </Border>
 
@@ -228,6 +232,7 @@
                                     <TextBlock Name="ModelStatusText" Style="{StaticResource CaptionText}" TextWrapping="Wrap" Margin="0,4,0,0" />
                                     <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
                                         <Button Content="打开数据目录" Style="{StaticResource GhostButton}" Click="OpenDataFolder_Click" />
+                                        <Button Content="下载离线语言包" Style="{StaticResource GhostButton}" Click="DownloadModels_Click" />
                                         <Button Content="安装识别语言包" Style="{StaticResource GhostButton}" Click="InstallOcrPack_Click" />
                                         <Button Content="打开语言设置" Style="{StaticResource GhostButton}" Click="OpenLanguageSettings_Click" />
                                     </StackPanel>
@@ -265,6 +270,23 @@
                                 <StackPanel>
                                     <TextBlock Text="启动" Style="{StaticResource CardTitle}" />
                                     <CheckBox Name="StartupCheck" Content="开机自动启动（当前用户）" />
+                                </StackPanel>
+                            </Border>
+
+                            <Border Style="{StaticResource SectionCard}">
+                                <StackPanel>
+                                    <TextBlock Text="数据管理" Style="{StaticResource CardTitle}" />
+                                    <TextBlock Text="只清理本机数据；设置和 API Key 会保留。"
+                                               Style="{StaticResource CaptionText}" TextWrapping="Wrap" />
+                                    <WrapPanel Margin="0,10,0,0">
+                                        <Button Content="清除历史与缓存" Style="{StaticResource GhostButton}" Margin="0,0,6,6" Click="ClearHistoryCache_Click" />
+                                        <Button Content="清除全部本地数据" Style="{StaticResource GhostButton}" Margin="0,0,6,6" Click="ClearAllLocalData_Click" />
+                                        <Button Content="导出设置" Style="{StaticResource GhostButton}" Margin="0,0,6,6" Click="ExportSettings_Click" />
+                                        <Button Content="导入设置" Style="{StaticResource GhostButton}" Margin="0,0,6,6" Click="ImportSettings_Click" />
+                                        <Button Content="备份术语表" Style="{StaticResource GhostButton}" Margin="0,0,6,6" Click="BackupGlossary_Click" />
+                                    </WrapPanel>
+                                    <TextBlock Text="导出设置包含 API Key（DPAPI 加密，仅当前 Windows 用户可解密），请妥善保管。"
+                                               Style="{StaticResource CaptionText}" TextWrapping="Wrap" Margin="0,4,0,0" />
                                 </StackPanel>
                             </Border>
                         </StackPanel>

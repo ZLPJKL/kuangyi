@@ -28,10 +28,14 @@
     <ApplicationDefinition Remove="KuangYi\App\App.xaml" />
     <ApplicationDefinition Include="KuangYi\App\App.xaml" Generator="MSBuild:Compile" SubType="Designer" LogicalName="app.xaml" />
     <Page Remove="KuangYi\App\Windows\CaptureOverlayWindow.xaml" />
+    <Page Remove="KuangYi\App\Windows\BatchWindow.xaml" />
     <Page Remove="KuangYi\App\Windows\DisclaimerWindow.xaml" />
+    <Page Remove="KuangYi\App\Windows\FirstRunWindow.xaml" />
     <Page Remove="KuangYi\App\Windows\HistoryWindow.xaml" />
     <Page Remove="KuangYi\App\Windows\GlossaryWindow.xaml" />
     <Page Remove="KuangYi\App\Windows\MainWindow.xaml" />
+    <Page Remove="KuangYi\App\Windows\ModelDownloadWindow.xaml" />
+    <Page Remove="KuangYi\App\Windows\PinImageWindow.xaml" />
     <Page Remove="KuangYi\App\Windows\ResultWindow.xaml" />
     <Page Remove="KuangYi\App\Windows\SettingsWindow.xaml" />
     <Page Remove="KuangYi\App\Windows\StartupNoticeWindow.xaml" />
@@ -39,10 +43,14 @@
     <Page Remove="themes\shared.xaml" />
     <Page Remove="themes\white.xaml" />
     <Page Include="KuangYi\App\Windows\CaptureOverlayWindow.xaml" Generator="MSBuild:Compile" SubType="Designer" LogicalName="windows/captureoverlaywindow.xaml" />
+    <Page Include="KuangYi\App\Windows\BatchWindow.xaml" Generator="MSBuild:Compile" SubType="Designer" LogicalName="windows/batchwindow.xaml" />
     <Page Include="KuangYi\App\Windows\DisclaimerWindow.xaml" Generator="MSBuild:Compile" SubType="Designer" LogicalName="windows/disclaimerwindow.xaml" />
+    <Page Include="KuangYi\App\Windows\FirstRunWindow.xaml" Generator="MSBuild:Compile" SubType="Designer" LogicalName="windows/firstrunwindow.xaml" />
     <Page Include="KuangYi\App\Windows\HistoryWindow.xaml" Generator="MSBuild:Compile" SubType="Designer" LogicalName="windows/historywindow.xaml" />
     <Page Include="KuangYi\App\Windows\GlossaryWindow.xaml" Generator="MSBuild:Compile" SubType="Designer" LogicalName="windows/glossarywindow.xaml" />
     <Page Include="KuangYi\App\Windows\MainWindow.xaml" Generator="MSBuild:Compile" SubType="Designer" LogicalName="windows/mainwindow.xaml" />
+    <Page Include="KuangYi\App\Windows\ModelDownloadWindow.xaml" Generator="MSBuild:Compile" SubType="Designer" LogicalName="windows/modeldownloadwindow.xaml" />
+    <Page Include="KuangYi\App\Windows\PinImageWindow.xaml" Generator="MSBuild:Compile" SubType="Designer" LogicalName="windows/pinimagewindow.xaml" />
     <Page Include="KuangYi\App\Windows\ResultWindow.xaml" Generator="MSBuild:Compile" SubType="Designer" LogicalName="windows/resultwindow.xaml" />
     <Page Include="KuangYi\App\Windows\SettingsWindow.xaml" Generator="MSBuild:Compile" SubType="Designer" LogicalName="windows/settingswindow.xaml" />
     <Page Include="KuangYi\App\Windows\StartupNoticeWindow.xaml" Generator="MSBuild:Compile" SubType="Designer" LogicalName="windows/startupnoticewindow.xaml" />

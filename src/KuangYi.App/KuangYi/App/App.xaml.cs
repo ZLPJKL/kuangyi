@@ -75,7 +75,23 @@ public partial class App : System.Windows.Application
 		}
 		if (bitmapSource == null)
 		{
-			Tray.ShowBalloon("框译", "剪贴板里没有图片。先复制一张截图再试。");
+			try
+			{
+				if (System.Windows.Clipboard.ContainsText())
+				{
+					string text = System.Windows.Clipboard.GetText().Trim();
+					if (text.Length > 0)
+					{
+						await TranslateTextAsync(text);
+						return;
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				AppLog.Warn("clipboard text read failed: " + ex.Message);
+			}
+			Tray.ShowBalloon("框译", "剪贴板里没有图片或文字。先复制一张截图或一段文字再试。");
 			return;
 		}
 		if (bitmapSource.CanFreeze)
@@ -90,7 +106,7 @@ public partial class App : System.Windows.Application
 		Microsoft.Win32.OpenFileDialog openFileDialog = new Microsoft.Win32.OpenFileDialog
 		{
 			Title = "选择要识别的图片",
-			Filter = "图片文件|*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.tif;*.tiff|所有文件|*.*",
+			Filter = "图片文件|*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.tif;*.tiff;*.webp|所有文件|*.*",
 			CheckFileExists = true,
 			Multiselect = false
 		};
@@ -98,12 +114,17 @@ public partial class App : System.Windows.Application
 		{
 			return;
 		}
+		await CaptureFromPathAsync(openFileDialog.FileName);
+	}
+
+	public async Task CaptureFromPathAsync(string path)
+	{
 		try
 		{
 			BitmapImage bitmapImage = new BitmapImage();
 			bitmapImage.BeginInit();
 			bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
-			bitmapImage.UriSource = new Uri(openFileDialog.FileName, UriKind.Absolute);
+			bitmapImage.UriSource = new Uri(path, UriKind.Absolute);
 			bitmapImage.EndInit();
 			bitmapImage.Freeze();
 			await ShowImageAsync(bitmapImage);
@@ -112,6 +133,25 @@ public partial class App : System.Windows.Application
 		{
 			AppLog.Error("image file ocr failed", ex);
 			Tray.ShowBalloon("框译", "读取图片失败：" + ex.Message, ToolTipIcon.Error);
+		}
+	}
+
+	public async Task TranslateTextAsync(string text)
+	{
+		if (string.IsNullOrWhiteSpace(text))
+		{
+			return;
+		}
+
+		try
+		{
+			ShowResultWindow();
+			await ResultWindowInstance!.ShowTextAsync(text);
+		}
+		catch (Exception ex)
+		{
+			AppLog.Error("clipboard text translation failed", ex);
+			Tray.ShowBalloon("框译", "翻译失败：" + ex.Message, ToolTipIcon.Error);
 		}
 	}
 
@@ -288,8 +328,28 @@ public partial class App : System.Windows.Application
 		AppLog.Info($"startup complete: hotkey={Settings.Hotkey} registered={flag} root={AppPaths.Root}");
 		if (!Settings.FirstRunCompleted)
 		{
-			Settings.FirstRunCompleted = true;
-			SettingsStore.Save(Settings);
+			try
+			{
+				var wizard = new FirstRunWindow();
+				if (wizard.ShowDialog() == true)
+				{
+					var updated = wizard.EditedSettings;
+					updated.FirstRunCompleted = true;
+					ApplySettings(updated);
+					StartupService.SetEnabled(updated.StartWithWindows);
+				}
+				else
+				{
+					Settings.FirstRunCompleted = true;
+					SettingsStore.Save(Settings);
+				}
+			}
+			catch (Exception ex)
+			{
+				AppLog.Warn("first-run wizard failed: " + ex.Message);
+				Settings.FirstRunCompleted = true;
+				SettingsStore.Save(Settings);
+			}
 		}
 		ShowMainWindow();
 	}

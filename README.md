@@ -1,11 +1,35 @@
 # 框译 Framed Translation
 
+[English README](README.en.md)
+
 [![Platform](https://img.shields.io/badge/platform-Windows%2010%20%7C%2011-0078D4?logo=windows)](https://www.microsoft.com/windows)
 [![.NET](https://img.shields.io/badge/.NET-10-512BD4?logo=dotnet)](https://dotnet.microsoft.com/)
-[![Version](https://img.shields.io/badge/version-1.1.0-blue)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.2.0-blue)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 > 按 `F2` 框选屏幕任意区域，本地 OCR 识别后直接翻译。离线可用，无广告、无账号、无付费墙。
+
+![框译主界面](docs/images/main.png)
+
+## 下载
+
+从 [最新 Release](https://github.com/ZLPJKL/kuangyi/releases/latest) 下载：
+
+- `KuangYi-v1.2.0-win-x64.zip` —— 程序本体（约 89 MB）
+- `KuangYi-v1.2.0-models.zip` —— 离线语言包（约 1.2 GB）
+- `SHA256SUMS.txt` —— 校验值
+
+解压两个 ZIP 到同一个文件夹，双击 `框译.exe`。没有语言包也能启动，但只能使用在线翻译。
+
+## 界面
+
+| 识别结果 | 设置分类 |
+| --- | --- |
+| ![识别结果](docs/images/result.png) | ![设置](docs/images/settings.png) |
+
+![批量翻译](docs/images/batch.png)
+
+![首次启动向导](docs/images/first-run.png)
 
 ## 简介
 
@@ -185,7 +209,26 @@ API=API
 - 英→日使用多语模型，个别语气词和问候语质量一般。
 - 离线模型约 1.5 GB，首次加载需要额外时间。
 - 暂未提供安装器、代码签名和自动更新。
-- 暂不支持竖排日文。
+- 暂不支持竖排日文专用排版引擎；高质量模式会尝试旋转识别。
+- 实时翻译会周期性截取固定区域，结果窗与选区重叠时可能截到窗口本身。
+
+## 常见问题
+
+### 启动后提示缺少 OCR 语言包
+
+打开 Windows 设置 → 时间和语言 → 语言和区域，安装对应语言的“光学字符识别”可选功能；或在框译设置中点击「安装识别语言包」。
+
+### 离线翻译不可用
+
+确认离线语言包已解压到 `bin\models`，或在设置 → 识别与模型中点击「下载离线语言包」。
+
+### SmartScreen 提示未知发布者
+
+当前是绿色压缩包，没有代码签名。确认文件来自本仓库 Release 后，可选择「更多信息 → 仍要运行」。
+
+### 在线翻译失败
+
+检查 API Key、网络和额度；框译会自动回退到离线模型。日志位于 `%LOCALAPPDATA%\KuangYi\logs\app.log`。
 
 ## 参与贡献
 

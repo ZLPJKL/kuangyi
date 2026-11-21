@@ -71,6 +71,8 @@ public partial class SettingsWindow : Window, IComponentConnector
 		AppSettings settings = App.Current.Settings;
 		HotkeyBox.Text = settings.Hotkey;
 		ThemeCombo.SelectedIndex = (string.Equals(settings.Theme, "Black", StringComparison.OrdinalIgnoreCase) ? 1 : (string.Equals(settings.Theme, "Auto", StringComparison.OrdinalIgnoreCase) ? 2 : 0));
+		ResultFontSlider.Value = settings.ResultFontSize;
+		ResultOpacitySlider.Value = settings.ResultOpacity;
 		SourceLangCombo.ItemsSource = Languages.SourceChoices;
 		SourceLangCombo.SelectedItem = Languages.SourceChoices.FirstOrDefault((LanguageInfo l) => string.Equals(l.Code, settings.SourceLanguage, StringComparison.OrdinalIgnoreCase)) ?? Languages.AutoInfo;
 		TargetLangCombo.ItemsSource = Languages.All;
@@ -309,6 +311,8 @@ public partial class SettingsWindow : Window, IComponentConnector
 		appSettings.ThumbnailsEnabled = ThumbnailCheck.IsChecked == true;
 		appSettings.KeepOriginalImage = OriginalCheck.IsChecked == true;
 		appSettings.StartWithWindows = StartupCheck.IsChecked == true;
+		appSettings.ResultFontSize = ResultFontSlider.Value;
+		appSettings.ResultOpacity = ResultOpacitySlider.Value;
 		appSettings.CacheEnabled = CacheEnabledCheck.IsChecked == true;
 		appSettings.CacheMaxEntries = int.TryParse((CacheLimitCombo.SelectedItem as ComboBoxItem)?.Tag as string, out var cacheLimit)
 			? cacheLimit
@@ -383,6 +387,18 @@ public partial class SettingsWindow : Window, IComponentConnector
 		}
 	}
 
+	private void DownloadModels_Click(object sender, RoutedEventArgs e)
+	{
+		try
+		{
+			new ModelDownloadWindow { Owner = this }.ShowDialog();
+		}
+		catch (Exception ex)
+		{
+			ShowError("无法打开下载窗口：" + ex.Message);
+		}
+	}
+
 	private async void ClearCache_Click(object sender, RoutedEventArgs e)
 	{
 		try
@@ -394,6 +410,127 @@ public partial class SettingsWindow : Window, IComponentConnector
 		catch (Exception ex)
 		{
 			ShowError("清除缓存失败：" + ex.Message);
+		}
+	}
+
+	private async void ClearHistoryCache_Click(object sender, RoutedEventArgs e)
+	{
+		if (MessageBox.Show(this, "清除全部历史记录和翻译缓存？此操作不可撤销，术语表会保留。", "框译", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+		{
+			return;
+		}
+
+		try
+		{
+			await App.Current.HistoryStore.ClearAsync(includeFavorites: true);
+			var count = await App.Current.Translations.Cache.ClearAsync();
+			ShowStatus($"已清除历史记录和 {count} 条缓存。");
+			await RefreshStatsAsync();
+		}
+		catch (Exception ex)
+		{
+			ShowError("清理失败：" + ex.Message);
+		}
+	}
+
+	private async void ClearAllLocalData_Click(object sender, RoutedEventArgs e)
+	{
+		if (MessageBox.Show(this, "清除历史、缓存和术语表？设置与 API Key 会保留。此操作不可撤销。", "框译", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
+		{
+			return;
+		}
+
+		try
+		{
+			await App.Current.HistoryStore.ClearAsync(includeFavorites: true);
+			var count = await App.Current.Translations.Cache.ClearAsync();
+			App.Current.Translations.Glossary.WriteRaw("# 框译术语表\n# 每行：源语言>目标语言 原文=译文\n");
+			GlossaryStatusText.Text = "已加载 0 条术语";
+			ShowStatus($"已清除历史、{count} 条缓存和术语表。");
+			await RefreshStatsAsync();
+		}
+		catch (Exception ex)
+		{
+			ShowError("清理失败：" + ex.Message);
+		}
+	}
+
+	private void ExportSettings_Click(object sender, RoutedEventArgs e)
+	{
+		var dialog = new Microsoft.Win32.SaveFileDialog
+		{
+			Title = "导出框译设置",
+			Filter = "JSON 文件|*.json|所有文件|*.*",
+			FileName = "kuangyi-settings.json",
+			AddExtension = true,
+			DefaultExt = ".json"
+		};
+		if (dialog.ShowDialog(this) != true)
+		{
+			return;
+		}
+
+		try
+		{
+			File.Copy(AppPaths.SettingsFile, dialog.FileName, overwrite: true);
+			ShowStatus("设置已导出：" + dialog.FileName);
+		}
+		catch (Exception ex)
+		{
+			ShowError("导出失败：" + ex.Message);
+		}
+	}
+
+	private void ImportSettings_Click(object sender, RoutedEventArgs e)
+	{
+		var dialog = new Microsoft.Win32.OpenFileDialog
+		{
+			Title = "导入框译设置",
+			Filter = "JSON 文件|*.json|所有文件|*.*",
+			CheckFileExists = true
+		};
+		if (dialog.ShowDialog(this) != true)
+		{
+			return;
+		}
+
+		try
+		{
+			var imported = new SettingsService(dialog.FileName).Load();
+			App.Current.ApplySettings(imported);
+			StartupService.SetEnabled(imported.StartWithWindows);
+			Reload();
+			ShowStatus("设置已导入并应用。");
+		}
+		catch (Exception ex)
+		{
+			ShowError("导入失败：" + ex.Message);
+		}
+	}
+
+	private void BackupGlossary_Click(object sender, RoutedEventArgs e)
+	{
+		var dialog = new Microsoft.Win32.SaveFileDialog
+		{
+			Title = "备份术语表",
+			Filter = "文本文件|*.txt|所有文件|*.*",
+			FileName = "glossary-backup.txt",
+			AddExtension = true,
+			DefaultExt = ".txt"
+		};
+		if (dialog.ShowDialog(this) != true)
+		{
+			return;
+		}
+
+		try
+		{
+			File.Copy(App.Current.Translations.Glossary.FilePath, dialog.FileName, overwrite: true);
+			ShowStatus("术语表已备份：" + dialog.FileName);
+		}
+		catch (Exception ex)
+		{
+			ShowError("备份失败：" + ex.Message);
 		}
 	}
 

@@ -12,6 +12,16 @@ namespace KuangYi.App.Services;
 
 public sealed class CaptureService
 {
+	public BitmapSource CaptureRegion(Int32Rect region)
+	{
+		if (region.Width <= 0 || region.Height <= 0)
+		{
+			throw new ArgumentException("截图区域为空", nameof(region));
+		}
+
+		return CaptureWithBitBlt(region.X, region.Y, region.Width, region.Height);
+	}
+
 	public CapturedFrame CaptureVirtualScreen()
 	{
 		int systemMetrics = NativeMethods.GetSystemMetrics(76);

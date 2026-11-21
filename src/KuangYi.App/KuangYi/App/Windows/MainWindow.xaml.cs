@@ -1,4 +1,6 @@
 using System;
+using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
@@ -88,6 +90,11 @@ public partial class MainWindow : Window, IComponentConnector
 		await RunImageActionAsync(App.Current.CaptureFromFileAsync);
 	}
 
+	private void Batch_Click(object sender, RoutedEventArgs e)
+	{
+		new BatchWindow().Show();
+	}
+
 	private async Task RunImageActionAsync(Func<Task> action)
 	{
 		Hide();
@@ -107,6 +114,39 @@ public partial class MainWindow : Window, IComponentConnector
 		{
 			e.Handled = true;
 			await RunImageActionAsync(App.Current.CaptureFromClipboardAsync);
+		}
+	}
+
+	private void Window_DragOver(object sender, DragEventArgs e)
+	{
+		e.Effects = e.Data.GetDataPresent(DataFormats.FileDrop)
+			? DragDropEffects.Copy
+			: DragDropEffects.None;
+		e.Handled = true;
+	}
+
+	private async void Window_Drop(object sender, DragEventArgs e)
+	{
+		if (!e.Data.GetDataPresent(DataFormats.FileDrop))
+		{
+			return;
+		}
+
+		var files = (string[])e.Data.GetData(DataFormats.FileDrop);
+		string? path = files?.FirstOrDefault(File.Exists);
+		if (string.IsNullOrEmpty(path))
+		{
+			return;
+		}
+
+		Hide();
+		try
+		{
+			await App.Current.CaptureFromPathAsync(path);
+		}
+		finally
+		{
+			Show();
 		}
 	}
 
